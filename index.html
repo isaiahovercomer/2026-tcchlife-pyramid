@@ -51,7 +51,9 @@
   .scale-toggle button { font-size:12px; padding:4px 9px; border:1px solid var(--line); background:#fff; border-radius:999px; cursor:pointer; color:var(--ink); line-height:1.4; }
   .scale-toggle button.active { background:var(--accent); color:#fff; border-color:var(--accent); }
   .shape-label { font-size:12px; color:var(--muted); }
-  .shot-btn { font-size:12px; padding:4px 11px; border:1px solid #d9c9a8; background:#fff; border-radius:999px; cursor:pointer; color:var(--accent); line-height:1.4; font-weight:600; }
+  .shot-row { display:flex; justify-content:flex-end; margin:2px 0 10px; flex-shrink:0; }
+  .shot-btn { font-size:15px; font-weight:700; padding:9px 20px; border:none; background:var(--accent); color:#fff; border-radius:12px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.15); line-height:1.4; }
+  .shot-btn:active { transform:translateY(1px); }
   .detail { background:#fff8e7; border:1px solid var(--line); border-radius:10px; padding:9px 12px; font-size:15px; line-height:1.7; margin-bottom:8px; min-height:40px; flex-shrink:0; }
   .warn { background:#fff3e0; border:1px solid #f0d9a8; border-radius:10px; padding:8px 12px; font-size:13px; line-height:1.7; margin-bottom:8px; flex-shrink:0; }
   .err { background:#fdecea; border:1px solid #f0b8b2; border-radius:10px; padding:10px 12px; font-size:14px; margin-bottom:8px; flex-shrink:0; }
@@ -129,8 +131,8 @@
       <button id="btnOutline" class="active">輪廓</button>
     </span>
     <span class="shape-label" id="shapeLabel"></span>
-    <button id="btnShot" class="shot-btn">截圖存 PNG</button>
   </div>
+  <div class="shot-row"><button id="btnShot" class="shot-btn">一鍵截圖</button></div>
   <div id="summary" class="summary sum-yellow"><span class="dot"></span><b class="verdict"></b><span id="sumText"></span></div>
   <div class="detail" id="detail">載入數據中…</div>
   <div id="warn" class="warn" style="display:none"></div>
