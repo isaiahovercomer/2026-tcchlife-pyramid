@@ -13,37 +13,44 @@
   h1 { font-size:30px; margin:0 0 4px; line-height:1.3; }
   .badge { display:inline-block; font-size:13px; background:var(--fc); color:#fff; border-radius:6px; padding:2px 8px; vertical-align:4px; margin-left:8px; }
   .sub { color:var(--muted); font-size:13px; line-height:1.6; margin-bottom:10px; flex-shrink:0; }
-  .controls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px; flex-shrink:0; }
-  .years { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
-  .glabel { font-size:12px; color:var(--muted); }
+  .controls { display:flex; flex-direction:column; gap:10px; margin-bottom:10px; flex-shrink:0; }
+  select { font-size:15px; font-weight:600; padding:9px 12px; border:2px solid #d9c9a8; border-radius:12px; background:#fff; color:var(--ink); width:100%; line-height:1.4; }
+  .years { display:flex; flex-direction:column; gap:6px; }
+  .year-row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .glabel { font-size:12px; color:var(--muted); width:36px; flex-shrink:0; }
   .years button { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:999px; padding:7px 13px; font-size:14px; cursor:pointer; line-height:1.4; }
   .years button.active { background:var(--accent); color:#fff; border-color:var(--accent); }
   .years button.fc { border:1px dashed #d9b96a; background:#fdf6e7; color:#7a5f2a; }
   .years button.fc.active { background:#f5e3c0; border-color:#c9a44a; color:#5d4a26; }
-  select { font-size:14px; padding:7px 9px; border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); max-width:100%; line-height:1.4; }
   .cur { font-size:13px; color:var(--muted); margin-bottom:8px; flex-shrink:0; }
   .cur b { color:var(--ink); }
-  .pyramid { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:6px 12px 10px; flex:1; min-height:0; display:flex; flex-direction:column; }
-  .axis { display:grid; grid-template-columns:1fr 62px 1fr; gap:6px; font-size:12px; color:var(--muted); padding:2px 0; flex-shrink:0; }
-  .axis .l { text-align:right; }
-  .ruler { display:grid; grid-template-columns:1fr 62px 1fr; gap:6px; font-size:10px; color:var(--muted); padding:0 0 4px; flex-shrink:0; }
+  .age-line { font-size:15px; margin-bottom:8px; flex-shrink:0; }
+  .age-line b { font-size:17px; }
+  .age-line button.link { background:none; border:none; color:var(--accent); cursor:pointer; font-size:13px; text-decoration:underline; padding:0; }
+  .pyramid { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:8px 10px 10px; flex:1; min-height:0; display:flex; flex-direction:column; }
+  .axis { display:grid; grid-template-columns:1fr 1fr; font-size:12px; color:var(--muted); padding:2px 0; flex-shrink:0; }
+  .axis .l { text-align:right; padding-right:4px; }
+  .axis .r { padding-left:4px; }
+  .ruler { display:grid; grid-template-columns:1fr 1fr; font-size:10px; color:var(--muted); padding:0 0 4px; flex-shrink:0; }
   .ruler .ticks { display:flex; justify-content:space-between; }
-  #rows { flex:1; min-height:0; display:flex; flex-direction:column; }
-  .prow { display:grid; grid-template-columns:1fr 62px 1fr; gap:6px; align-items:center; border-bottom:1px solid #f3ecdd; cursor:pointer; flex:1; min-height:0; }
-  .prow:last-child { border-bottom:none; }
-  .prow:hover, .prow.sel { background:#fdf8ec; }
+  #rows { flex:1; min-height:0; display:flex; flex-direction:column; position:relative; }
+  .prow { display:grid; grid-template-columns:1fr 1fr; align-items:stretch; cursor:pointer; flex:1; min-height:0; }
+  .prow:hover { filter:brightness(1.06); }
+  .prow.sel { filter:brightness(1.1); }
   .cell { display:flex; align-items:center; gap:6px; min-width:0; }
   .cell.left { justify-content:flex-end; }
-  .bar { height:13px; border-radius:4px; min-width:2px; }
+  .bar { align-self:stretch; min-height:14px; border-radius:2px; }
   .bar.male { background:var(--male); }
   .bar.female { background:var(--female); }
   .n { font-size:13px; font-variant-numeric:tabular-nums; white-space:nowrap; }
-  .band { text-align:center; font-size:13px; font-weight:600; }
+  #outline { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; display:none; }
+  #outline path { fill:rgba(90,74,51,0.04); stroke:#5a4a33; stroke-width:2; vector-effect:non-scaling-stroke; stroke-linejoin:round; }
   .legend { display:flex; gap:8px 14px; font-size:13px; margin:8px 0 6px; flex-wrap:wrap; align-items:center; flex-shrink:0; }
   .swatch { display:inline-block; width:13px; height:13px; border-radius:3px; vertical-align:-2px; margin-right:5px; }
   .scale-toggle { margin-left:auto; display:flex; gap:4px; }
   .scale-toggle button { font-size:12px; padding:4px 9px; border:1px solid var(--line); background:#fff; border-radius:999px; cursor:pointer; color:var(--ink); line-height:1.4; }
   .scale-toggle button.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .shape-label { font-size:12px; color:var(--muted); }
   .detail { background:#fff8e7; border:1px solid var(--line); border-radius:10px; padding:9px 12px; font-size:15px; line-height:1.7; margin-bottom:8px; min-height:40px; flex-shrink:0; }
   .warn { background:#fff3e0; border:1px solid #f0d9a8; border-radius:10px; padding:8px 12px; font-size:13px; line-height:1.7; margin-bottom:8px; flex-shrink:0; }
   .err { background:#fdecea; border:1px solid #f0b8b2; border-radius:10px; padding:10px 12px; font-size:14px; margin-bottom:8px; flex-shrink:0; }
@@ -70,17 +77,24 @@
   details summary { cursor:pointer; font-weight:700; font-size:14px; }
   details p { margin:8px 0; color:var(--muted); }
   details p b { color:var(--ink); }
+  .modal { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; z-index:50; padding:20px; }
+  .modal-box { background:#fff; border-radius:16px; padding:22px; max-width:340px; width:100%; }
+  .modal-box h2 { font-size:18px; margin:0 0 8px; line-height:1.4; }
+  .modal-box p { font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 12px; }
+  .modal-box input { width:100%; font-size:16px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; margin-bottom:6px; }
+  .modal-box .berr { font-size:13px; color:#b71c1c; min-height:20px; margin-bottom:6px; }
+  .modal-box .mbtn { font-size:15px; padding:9px 16px; border-radius:999px; cursor:pointer; border:1px solid var(--line); background:#fff; color:var(--ink); }
+  .modal-box .mbtn.primary { background:var(--accent); color:#fff; border-color:var(--accent); margin-right:8px; }
   @media (max-width:600px){
     h1 { font-size:24px; }
     .card { padding:7px 9px; }
     .card .value { font-size:18px; }
-    .band, .n { font-size:12px; }
-    .prow, .axis, .ruler { grid-template-columns:1fr 52px 1fr; }
+    .n { font-size:12px; }
   }
   @media (max-height:660px){
     .wrap { height:auto; }
     #rows { display:block; }
-    .prow { padding:3px 0; }
+    .prow { padding:2px 0; }
   }
 </style>
 </head>
@@ -90,25 +104,30 @@
   <div class="sub">主日出席 ≥2 個相異週（同週多場算 1 週） · 身分全部（含福音朋友）<br>資料來源：召會生活人數統計（chlife-stat.org）報表 → 年齡結構匯出 · 製表 2026-10-26</div>
 
   <div class="controls">
-    <div class="years" id="years"></div>
     <select id="scope" aria-label="選擇範圍"></select>
+    <div class="years" id="years"></div>
   </div>
   <div class="cur" id="curLine"></div>
+  <div class="age-line" id="ageLine"></div>
 
   <div class="pyramid">
-    <div class="axis"><span class="l">← 弟兄人數</span><span></span><span>姊妹人數 →</span></div>
-    <div class="ruler"><div class="ticks" id="rulerL"></div><div></div><div class="ticks" id="rulerR"></div></div>
-    <div id="rows"></div>
+    <div class="axis"><span class="l">← 弟兄人數</span><span class="r">姊妹人數 →</span></div>
+    <div class="ruler"><div class="ticks" id="rulerL"></div><div class="ticks" id="rulerR"></div></div>
+    <div id="rows">
+      <svg id="outline" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path id="outlinePath" d=""></path></svg>
+    </div>
   </div>
 
   <div class="legend">
     <span><i class="swatch" style="background:var(--male)"></i>弟兄（左）</span>
     <span><i class="swatch" style="background:var(--female)"></i>姊妹（右）</span>
-    <span style="color:var(--muted)">點年齡段看明細</span>
+    <span style="color:var(--muted)">點長條看年齡段明細</span>
     <span class="scale-toggle">
       <button id="btnLinear">真實比例</button>
       <button id="btnEnhanced" class="active">對比增強</button>
+      <button id="btnOutline" class="active">輪廓</button>
     </span>
+    <span class="shape-label" id="shapeLabel"></span>
   </div>
   <div class="detail" id="detail">載入數據中…</div>
   <div id="warn" class="warn" style="display:none"></div>
@@ -145,12 +164,26 @@
     <p><b>2026 年附註：</b>2026 年為累計至今（製表 2026-10-26），年底結算會再增加，不宜直接與全年比較。</p>
     <p><b>照顧區：</b>照顧區合計為所屬大區數字加總；平均年齡、中位數為依年齡段估算，青年占比由年齡段推算（35 歲以下）。平均年齡、中位數、青年占比的系統值僅總數與大區有提供。</p>
     <p><b>燈號說明：</b>綠燈（結構穩健）為青年占比 ≥45% 且 65 歲以上 ≤15% 且總數年減不超過 1%；紅燈（值得警示）為 65 歲以上 ≥30%，或 65 歲以上 ≥25% 且 0–14 歲 ≤10%；其餘為黃燈（需要留意）。燈號僅供參考，不代表對任何單位的評價。</p>
+    <p><b>輪廓說明：</b>輪廓線描出目前顯示的長條外緣（依目前比例模式），大致形狀由底部（0–9 歲平均）、最寬段、頂端（85 歲以上平均）三者比較而得：底部最寬且頂端收尖為正三角，頂端最寬且底部收尖為倒三角，上下接近等寬為長方形，底部寬、頂端較窄為梯形，頂端寬、底部較窄為倒梯形，底部與頂端都窄、中段外凸為壺形；僅供直觀參考。</p>
   </details>
+</div>
+
+<div id="birthModal" class="modal" style="display:none">
+  <div class="modal-box">
+    <h2>請輸入你的出生年</h2>
+    <p>輸入西元出生年後，網頁會在金字塔上方顯示你在所選年份的年齡，並隨年份切換而改變。出生年只存在你的瀏覽器，不會傳送出去。</p>
+    <input id="birthInput" type="number" inputmode="numeric" placeholder="例如：1985" min="1900" max="2026">
+    <div class="berr" id="birthErr"></div>
+    <div>
+      <button class="mbtn primary" id="birthOk">確認</button>
+      <button class="mbtn" id="birthSkip">先不輸入</button>
+    </div>
+  </div>
 </div>
 
 <script src="forecast.js"></script>
 <script>
-let DATA = null, curYear = '2026', curScope = '總數', scaleMode = 'enhanced';
+let DATA = null, curYear = '2026', curScope = '總數', scaleMode = 'enhanced', outlineOn = true, birthYear = null;
 const FC_YEARS = ['2027', '2030', '2035', '2040'];
 const fmt = n => n.toLocaleString('en-US');
 const num1 = v => (Math.round(v * 10) / 10).toString();
@@ -186,6 +219,11 @@ function getEntry(year, scope) {
 
 function buildControls() {
   const yearsEl = document.getElementById('years');
+  const rowA = document.createElement('div'); rowA.className = 'year-row';
+  const rowF = document.createElement('div'); rowF.className = 'year-row';
+  const g1 = document.createElement('span'); g1.className = 'glabel'; g1.textContent = '實際';
+  const g2 = document.createElement('span'); g2.className = 'glabel'; g2.textContent = '預估';
+  rowA.appendChild(g1); rowF.appendChild(g2);
   const mkBtn = (y, fc) => {
     const b = document.createElement('button');
     b.textContent = fc ? y + '預估' : (y === '2026' ? '2026（累計至今）' : y);
@@ -200,12 +238,9 @@ function buildControls() {
     };
     return b;
   };
-  const g1 = document.createElement('span'); g1.className = 'glabel'; g1.textContent = '實際';
-  yearsEl.appendChild(g1);
-  Object.keys(DATA.years).forEach(y => yearsEl.appendChild(mkBtn(y, false)));
-  const g2 = document.createElement('span'); g2.className = 'glabel'; g2.textContent = '預估';
-  yearsEl.appendChild(g2);
-  FC_YEARS.forEach(y => yearsEl.appendChild(mkBtn(y, true)));
+  Object.keys(DATA.years).forEach(y => rowA.appendChild(mkBtn(y, false)));
+  FC_YEARS.forEach(y => rowF.appendChild(mkBtn(y, true)));
+  yearsEl.appendChild(rowA); yearsEl.appendChild(rowF);
 
   const sel = document.getElementById('scope');
   const oT = document.createElement('option');
@@ -220,7 +255,7 @@ function buildControls() {
   sel.appendChild(ogC);
   Object.keys(DATA.care_districts).forEach(g => {
     const og = document.createElement('optgroup');
-    og.label = g + '照顧區—各區';
+    og.label = g + '照顧區—各大區';
     DATA.care_districts[g].forEach(d => {
       const o = document.createElement('option');
       o.value = d; o.textContent = d + '大區';
@@ -230,9 +265,10 @@ function buildControls() {
   });
   sel.onchange = () => { curScope = sel.value; render(); };
 
-  const bL = document.getElementById('btnLinear'), bE = document.getElementById('btnEnhanced');
-  bL.onclick = () => { scaleMode = 'linear'; bL.classList.remove('active'); bE.classList.remove('active'); bL.classList.add('active'); render(); };
-  bE.onclick = () => { scaleMode = 'enhanced'; bL.classList.remove('active'); bE.classList.remove('active'); bE.classList.add('active'); render(); };
+  const bL = document.getElementById('btnLinear'), bE = document.getElementById('btnEnhanced'), bO = document.getElementById('btnOutline');
+  bL.onclick = () => { scaleMode = 'linear'; bL.classList.add('active'); bE.classList.remove('active'); render(); };
+  bE.onclick = () => { scaleMode = 'enhanced'; bE.classList.add('active'); bL.classList.remove('active'); render(); };
+  bO.onclick = () => { outlineOn = !outlineOn; bO.classList.toggle('active', outlineOn); render(); };
 }
 
 function assess(entry) {
@@ -282,6 +318,56 @@ function assess(entry) {
   };
 }
 
+function shapeOf(entry) {
+  const tot = i => entry.bands[i][0] + entry.bands[i][1];
+  const Wb = (tot(0) + tot(1)) / 2;
+  const Wt = (tot(17) + tot(18)) / 2;
+  const Wm = Math.max.apply(null, entry.bands.map(p => p[0] + p[1]));
+  if (Wb >= Wm * 0.85 && Wt <= Wm * 0.35) return '正三角';
+  if (Wt >= Wm * 0.85 && Wb <= Wm * 0.35) return '倒三角';
+  if (Wb >= Wm * 0.7 && Wt >= Wm * 0.7) return '長方形';
+  if (Wb >= Wm * 0.7 && Wt < Wb * 0.7) return '梯形';
+  if (Wt >= Wm * 0.7 && Wb < Wt * 0.7) return '倒梯形';
+  return '壺形';
+}
+
+function ageBand(age) {
+  if (age <= 35) return { color: '#2e7d32', stage: '年輕' };
+  if (age <= 50) return { color: '#8a6d00', stage: '壯年' };
+  if (age <= 65) return { color: '#c2570a', stage: '中年' };
+  if (age <= 75) return { color: '#b71c1c', stage: '老年' };
+  return { color: '#6b7280', stage: '銀髮族' };
+}
+
+function renderAge() {
+  const el = document.getElementById('ageLine');
+  if (!birthYear) {
+    el.innerHTML = '<button class="link" id="ageAsk">＋ 輸入出生年，看看你在所選年份是幾歲</button>';
+    document.getElementById('ageAsk').onclick = showBirthModal;
+    return;
+  }
+  const age = parseInt(curYear, 10) - birthYear;
+  if (age < 0) {
+    el.innerHTML = curYear + '年，你尚未出生 <button class="link" id="ageEdit">更改出生年</button>';
+  } else {
+    const b = ageBand(age);
+    el.innerHTML = curYear + '年，你 <b style="color:' + b.color + '">' + age + ' 歲（' + b.stage + '）</b> <button class="link" id="ageEdit">更改出生年</button>';
+  }
+  document.getElementById('ageEdit').onclick = showBirthModal;
+}
+
+function showBirthModal() {
+  const m = document.getElementById('birthModal');
+  m.style.display = 'flex';
+  const inp = document.getElementById('birthInput');
+  if (birthYear) inp.value = birthYear;
+  document.getElementById('birthErr').textContent = '';
+  setTimeout(() => inp.focus(), 50);
+}
+function hideBirthModal() {
+  document.getElementById('birthModal').style.display = 'none';
+}
+
 function render() {
   const entry = getEntry(curYear, curScope);
   const errEl = document.getElementById('err');
@@ -297,6 +383,7 @@ function render() {
   const scopeName = curScope === '總數' ? '台中市召會總數' : (isCare(curScope) ? curScope + '照顧區' : curScope + '大區');
   const yearNote = isFC(curYear) ? '預估' : (curYear === '2026' ? '累計至今' : '實際');
   document.getElementById('curLine').innerHTML = '目前顯示：<b>' + curYear + '年（' + yearNote + '）</b>｜範圍：<b>' + scopeName + '</b>';
+  renderAge();
 
   document.getElementById('cTotal').textContent = fmt(entry.total);
   document.getElementById('cMale').textContent = fmt(entry.male);
@@ -334,20 +421,21 @@ function render() {
   document.getElementById('rulerR').innerHTML = ticks.slice().reverse().map(t => '<span>' + t + '</span>').join('');
 
   const rowsEl = document.getElementById('rows');
-  rowsEl.innerHTML = '';
+  rowsEl.querySelectorAll('.prow').forEach(r => r.remove());
   const detail = document.getElementById('detail');
   const showTotal = () => {
     detail.textContent = '全部年齡段：弟兄 ' + fmt(entry.male) + ' 人，姊妹 ' + fmt(entry.female) + ' 人，合計 ' + fmt(entry.total) + ' 人';
     rowsEl.querySelectorAll('.prow').forEach(r => r.classList.remove('sel'));
   };
-  entry.bands.forEach((pair, i) => {
+  const leftPts = [], rightPts = [];
+  for (let ri = 0; ri < 19; ri++) {
+    const i = 18 - ri;
     const label = DATA.band_labels[i];
-    const m = pair[0], f = pair[1], tot = m + f;
+    const m = entry.bands[i][0], f = entry.bands[i][1], tot = m + f;
     const row = document.createElement('div');
     row.className = 'prow';
     row.innerHTML =
       '<div class="cell left"><span class="n">' + fmt(m) + '</span><div class="bar male" style="width:' + wOf(m) + '%"></div></div>' +
-      '<div class="band">' + label + '</div>' +
       '<div class="cell"><div class="bar female" style="width:' + wOf(f) + '%"></div><span class="n">' + fmt(f) + '</span></div>';
     const show = () => {
       detail.textContent = label + '歲：弟兄 ' + fmt(m) + ' 人，姊妹 ' + fmt(f) + ' 人，合計 ' + fmt(tot) + ' 人（佔該範圍總數 ' + (entry.total ? (tot / entry.total * 100).toFixed(1) : '0.0') + '%）';
@@ -357,8 +445,23 @@ function render() {
     row.addEventListener('click', show);
     row.addEventListener('mouseenter', show);
     rowsEl.appendChild(row);
-  });
+    const y = (ri + 0.5) / 19 * 100;
+    leftPts.push((50 - wOf(m) / 2).toFixed(2) + ' ' + y.toFixed(2));
+    rightPts.push((50 + wOf(f) / 2).toFixed(2) + ' ' + y.toFixed(2));
+  }
   showTotal();
+
+  const svg = document.getElementById('outline');
+  const lbl = document.getElementById('shapeLabel');
+  if (outlineOn) {
+    const d = 'M ' + leftPts.join(' L ') + ' L ' + rightPts.slice().reverse().join(' L ') + ' Z';
+    document.getElementById('outlinePath').setAttribute('d', d);
+    svg.style.display = 'block';
+    lbl.textContent = '大致輪廓：' + shapeOf(entry);
+  } else {
+    svg.style.display = 'none';
+    lbl.textContent = '';
+  }
 
   const a = assess(entry);
   const sumEl = document.getElementById('summary');
@@ -373,13 +476,31 @@ function render() {
   document.getElementById('trend').innerHTML = '<b>總數趨勢（實際）：</b>' + parts.join(' → ');
 }
 
+document.getElementById('birthOk').onclick = () => {
+  const v = parseInt(document.getElementById('birthInput').value, 10);
+  if (isNaN(v) || v < 1900 || v > 2026) {
+    document.getElementById('birthErr').textContent = '請輸入 1900–2026 之間的西元年份。';
+    return;
+  }
+  birthYear = v;
+  try { localStorage.setItem('tcch-birth-year', String(v)); } catch (e) {}
+  hideBirthModal();
+  renderAge();
+};
+document.getElementById('birthSkip').onclick = () => { hideBirthModal(); renderAge(); };
+
 fetch('pyramid-data.json').then(r => {
   if (!r.ok) throw new Error('HTTP ' + r.status);
   return r.json();
 }).then(j => {
   DATA = j;
+  try {
+    const saved = localStorage.getItem('tcch-birth-year');
+    if (saved) birthYear = parseInt(saved, 10);
+  } catch (e) {}
   buildControls();
   render();
+  if (!birthYear) showBirthModal();
 }).catch(e => {
   const el = document.getElementById('err');
   el.style.display = 'block';
