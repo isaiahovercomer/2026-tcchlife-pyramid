@@ -26,6 +26,8 @@
   .card .value { font-size:20px; font-weight:700; }
   .card .value small { font-size:13px; font-weight:400; color:var(--muted); }
   .footnote { font-size:12px; color:var(--muted); line-height:1.6; margin:2px 0 8px; flex-shrink:0; }
+  .cur { font-size:13px; color:var(--muted); margin-bottom:8px; flex-shrink:0; }
+  .cur b { color:var(--ink); }
   .legend { display:flex; gap:8px 14px; font-size:13px; margin-bottom:6px; flex-wrap:wrap; align-items:center; flex-shrink:0; }
   .swatch { display:inline-block; width:13px; height:13px; border-radius:3px; vertical-align:-2px; margin-right:5px; }
   .scale-toggle { margin-left:auto; display:flex; gap:4px; }
@@ -71,13 +73,14 @@
 </head>
 <body>
 <div class="wrap">
-  <h1><span id="h1text">2026年台中市召會聚會人數年度統計</span><span id="fBadge" class="badge" style="display:none">預估</span></h1>
+  <h1>2026年台中市召會聚會人數年度統計<span id="fBadge" class="badge" style="display:none">預估</span></h1>
   <div class="sub">主日出席 ≥2 個相異週（同週多場算 1 週） · 身分全部（含福音朋友）<br>資料來源：召會生活人數統計（chlife-stat.org）報表 → 年齡結構匯出 · 製表 2026-10-26</div>
 
   <div class="controls">
     <div class="years" id="years"></div>
     <select id="scope" aria-label="選擇範圍"></select>
   </div>
+  <div class="cur" id="curLine"></div>
 
   <div id="warn" class="warn" style="display:none"></div>
   <div id="err" class="err" style="display:none"></div>
@@ -227,12 +230,10 @@ function render() {
   }
   errEl.style.display = 'none';
 
-  const title = isFC(curYear)
-    ? curYear + '年台中市召會聚會人數預估'
-    : curYear + '年台中市召會聚會人數年度統計';
-  document.getElementById('h1text').textContent = title;
-  document.title = title;
   document.getElementById('fBadge').style.display = isFC(curYear) ? 'inline-block' : 'none';
+  const scopeName = curScope === '總數' ? '台中市召會總數' : (isCare(curScope) ? curScope + '照顧區' : curScope + '大區');
+  const yearNote = isFC(curYear) ? '預估' : (curYear === '2026' ? '累計至今' : '實際');
+  document.getElementById('curLine').innerHTML = '目前顯示：<b>' + curYear + '年（' + yearNote + '）</b>｜範圍：<b>' + scopeName + '</b>';
 
   document.getElementById('cTotal').textContent = fmt(entry.total);
   document.getElementById('cMale').textContent = fmt(entry.male);
