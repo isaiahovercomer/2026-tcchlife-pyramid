@@ -421,8 +421,20 @@ function downloadShot() {
   ctx.font = '13px ' + font; ctx.fillStyle = '#8a7f70';
   ctx.fillText('目前顯示：' + curYear + '年（' + yearNote + '）｜範圍：' + scopeName, pad, y); y += 26;
   if (ageLine) {
-    ctx.font = '15px ' + font; ctx.fillStyle = '#3b332a';
-    ctx.fillText(ageLine, pad, y); y += 28;
+    ctx.font = '15px ' + font;
+    const age = birthYear ? parseInt(curYear, 10) - birthYear : -1;
+    if (birthYear && age >= 0) {
+      const b = ageBand(age);
+      const pre = curYear + '年，你 ';
+      ctx.fillStyle = '#3b332a';
+      ctx.fillText(pre, pad, y);
+      ctx.fillStyle = b.color;
+      ctx.fillText(age + ' 歲（' + b.stage + '）', pad + ctx.measureText(pre).width, y);
+    } else {
+      ctx.fillStyle = '#3b332a';
+      ctx.fillText(ageLine, pad, y);
+    }
+    y += 28;
   }
   y += 10;
   ctx.font = '12px ' + font; ctx.fillStyle = '#8a7f70';
