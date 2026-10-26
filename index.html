@@ -51,6 +51,12 @@
   .scale-toggle button { font-size:12px; padding:4px 9px; border:1px solid var(--line); background:#fff; border-radius:999px; cursor:pointer; color:var(--ink); line-height:1.4; }
   .scale-toggle button.active { background:var(--accent); color:#fff; border-color:var(--accent); }
   .shape-label { font-size:12px; color:var(--muted); }
+  .group-row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin:2px 0 10px; flex-shrink:0; }
+  .glabel2 { font-size:12px; color:var(--muted); flex-shrink:0; }
+  .group-row button { font-size:13px; padding:5px 12px; border:1px solid var(--line); background:#fff; border-radius:999px; cursor:pointer; color:var(--ink); line-height:1.4; }
+  .group-row button.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .prow.dim { opacity:.35; }
+  #groupFrame { fill:rgba(217,164,0,0.08); stroke:#d9a400; stroke-width:2.5; vector-effect:non-scaling-stroke; }
   .shot-row { display:flex; justify-content:flex-end; margin:2px 0 10px; flex-shrink:0; }
   .shot-btn { font-size:15px; font-weight:700; padding:9px 20px; border:none; background:var(--accent); color:#fff; border-radius:12px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.15); line-height:1.4; }
   .shot-btn:active { transform:translateY(1px); }
@@ -117,7 +123,7 @@
     <div class="axis"><span class="l">← 弟兄人數</span><span class="r">姊妹人數 →</span></div>
     <div class="ruler"><div class="ticks" id="rulerL"></div><div class="ticks" id="rulerR"></div></div>
     <div id="rows">
-      <svg id="outline" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path id="outlinePath" d=""></path></svg>
+      <svg id="outline" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path id="outlinePath" d=""></path><rect id="groupFrame" x="0" y="0" width="0" height="0" style="display:none"></rect></svg>
     </div>
   </div>
 
@@ -131,6 +137,13 @@
       <button id="btnOutline" class="active">輪廓</button>
     </span>
     <span class="shape-label" id="shapeLabel"></span>
+  </div>
+  <div class="group-row">
+    <span class="glabel2">特別年齡段：</span>
+    <button data-group="child">兒童 0–12歲</button>
+    <button data-group="youth">青少年 13–18歲</button>
+    <button data-group="college">大專 19–22歲</button>
+    <button data-group="youngpro">青職 23–35歲</button>
   </div>
   <div class="shot-row"><button id="btnShot" class="shot-btn">一鍵截圖</button></div>
   <div id="summary" class="summary sum-yellow"><span class="dot"></span><b class="verdict"></b><span id="sumText"></span></div>
@@ -187,7 +200,13 @@
 
 <script src="forecast.js"></script>
 <script>
-let DATA = null, curYear = '2026', curScope = '總數', scaleMode = 'enhanced', outlineOn = true, birthYear = null;
+let DATA = null, curYear = '2026', curScope = '總數', scaleMode = 'enhanced', outlineOn = true, birthYear = null, groupSel = null;
+const GROUPS = [
+  { key: 'child', label: '兒童', range: '0–12', bands: [0, 1, 2] },
+  { key: 'youth', label: '青少年', range: '13–18', bands: [2, 3] },
+  { key: 'college', label: '大專', range: '19–22', bands: [3, 4] },
+  { key: 'youngpro', label: '青職', range: '23–35', bands: [4, 5, 6, 7] }
+];
 const FC_YEARS = ['2027', '2030', '2035', '2040'];
 const fmt = n => n.toLocaleString('en-US');
 const num1 = v => (Math.round(v * 10) / 10).toString();
@@ -274,6 +293,14 @@ function buildControls() {
   bE.onclick = () => { scaleMode = 'enhanced'; bE.classList.add('active'); bL.classList.remove('active'); render(); };
   bO.onclick = () => { outlineOn = !outlineOn; bO.classList.toggle('active', outlineOn); render(); };
   document.getElementById('btnShot').onclick = downloadShot;
+  document.querySelectorAll('.group-row button').forEach(btn => {
+    btn.onclick = () => {
+      const key = btn.getAttribute('data-group');
+      groupSel = groupSel === key ? null : key;
+      document.querySelectorAll('.group-row button').forEach(b => b.classList.toggle('active', b.getAttribute('data-group') === groupSel));
+      render();
+    };
+  });
 }
 
 function assess(entry) {
@@ -375,6 +402,19 @@ function hideBirthModal() {
   document.getElementById('birthModal').style.display = 'none';
 }
 
+function groupTotal(entry, bands) {
+  let m = 0, f = 0;
+  bands.forEach(i => { m += entry.bands[i][0]; f += entry.bands[i][1]; });
+  return { m, f, t: m + f };
+}
+
+function showGroupDetail(entry) {
+  const g = GROUPS.find(x => x.key === groupSel);
+  if (!g) return;
+  const t = groupTotal(entry, g.bands);
+  document.getElementById('detail').textContent = g.label + '（' + g.range + '歲）：弟兄 ' + fmt(t.m) + ' 人，姊妹 ' + fmt(t.f) + ' 人，合計 ' + fmt(t.t) + ' 人（按涵蓋的 5 年段加總）';
+}
+
 function downloadShot() {
   const entry = getEntry(curYear, curScope);
   if (!entry) return;
@@ -441,9 +481,11 @@ function downloadShot() {
   ctx.textAlign = 'right'; ctx.fillText('← 弟兄人數', cx - 8, y);
   ctx.textAlign = 'left'; ctx.fillText('姊妹人數 →', cx + 8, y); y += 22;
   const leftPts = [], rightPts = [];
+  const gBands = groupSel ? GROUPS.find(g => g.key === groupSel).bands : null;
   for (let ri = 0; ri < 19; ri++) {
     const i = 18 - ri;
     const m = entry.bands[i][0], f = entry.bands[i][1];
+    ctx.globalAlpha = (gBands && gBands.indexOf(i) < 0) ? 0.35 : 1;
     const mw = wOf(m) / 100 * maxBar, fw = wOf(f) / 100 * maxBar;
     ctx.fillStyle = maleCol; ctx.fillRect(cx - mw, y, mw, rowH);
     ctx.fillStyle = femaleCol; ctx.fillRect(cx, y, fw, rowH);
@@ -453,12 +495,21 @@ function downloadShot() {
     leftPts.push([cx - mw, y + rowH / 2]); rightPts.push([cx + fw, y + rowH / 2]);
     y += rowH;
   }
+  ctx.globalAlpha = 1;
   if (outlineOn) {
     ctx.strokeStyle = '#5a4a33'; ctx.lineWidth = 2; ctx.beginPath();
     ctx.moveTo(leftPts[0][0], leftPts[0][1]);
     leftPts.forEach(p => ctx.lineTo(p[0], p[1]));
     rightPts.slice().reverse().forEach(p => ctx.lineTo(p[0], p[1]));
     ctx.closePath(); ctx.stroke();
+  }
+  if (gBands) {
+    const ris = gBands.map(b => 18 - b);
+    const xs = ris.map(ri => leftPts[ri][0]);
+    const xe = ris.map(ri => rightPts[ri][0]);
+    const top = Math.min.apply(null, ris), bot = Math.max.apply(null, ris);
+    ctx.strokeStyle = '#d9a400'; ctx.lineWidth = 3;
+    ctx.strokeRect(Math.min.apply(null, xs), leftPts[top][1] - rowH / 2, Math.max.apply(null, xe) - Math.min.apply(null, xs), (bot - top + 1) * rowH);
   }
   y += 20;
   const cardH = 14 + sumLines.length * 26 + 14;
@@ -558,6 +609,10 @@ function render() {
     const m = entry.bands[i][0], f = entry.bands[i][1], tot = m + f;
     const row = document.createElement('div');
     row.className = 'prow';
+    if (groupSel) {
+      const gb = GROUPS.find(g => g.key === groupSel).bands;
+      if (gb.indexOf(i) < 0) row.classList.add('dim');
+    }
     row.innerHTML =
       '<div class="cell left"><span class="n">' + fmt(m) + '</span><div class="bar male" style="width:' + wOf(m) + '%"></div></div>' +
       '<div class="cell"><div class="bar female" style="width:' + wOf(f) + '%"></div><span class="n">' + fmt(f) + '</span></div>';
@@ -574,18 +629,36 @@ function render() {
     rightPts.push((50 + wOf(f) / 2).toFixed(2) + ' ' + y.toFixed(2));
   }
   showTotal();
+  if (groupSel) showGroupDetail(entry);
 
   const svg = document.getElementById('outline');
   const lbl = document.getElementById('shapeLabel');
+  const oPath = document.getElementById('outlinePath');
+  const gFrame = document.getElementById('groupFrame');
   if (outlineOn) {
     const d = 'M ' + leftPts.join(' L ') + ' L ' + rightPts.slice().reverse().join(' L ') + ' Z';
-    document.getElementById('outlinePath').setAttribute('d', d);
-    svg.style.display = 'block';
+    oPath.setAttribute('d', d);
+    oPath.style.display = 'block';
     lbl.textContent = '大致輪廓：' + shapeOf(entry);
   } else {
-    svg.style.display = 'none';
+    oPath.style.display = 'none';
     lbl.textContent = '';
   }
+  if (groupSel) {
+    const gb = GROUPS.find(g => g.key === groupSel).bands;
+    const ris = gb.map(b => 18 - b);
+    const top = Math.min.apply(null, ris), bot = Math.max.apply(null, ris);
+    const xs = ris.map(ri => parseFloat(leftPts[ri].split(' ')[0]));
+    const xe = ris.map(ri => parseFloat(rightPts[ri].split(' ')[0]));
+    gFrame.setAttribute('x', Math.min.apply(null, xs).toFixed(2));
+    gFrame.setAttribute('y', (top / 19 * 100).toFixed(2));
+    gFrame.setAttribute('width', (Math.max.apply(null, xe) - Math.min.apply(null, xs)).toFixed(2));
+    gFrame.setAttribute('height', ((bot + 1 - top) / 19 * 100).toFixed(2));
+    gFrame.style.display = 'block';
+  } else {
+    gFrame.style.display = 'none';
+  }
+  svg.style.display = (outlineOn || groupSel) ? 'block' : 'none';
 
   const a = assess(entry);
   const sumEl = document.getElementById('summary');
