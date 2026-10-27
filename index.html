@@ -66,8 +66,12 @@
   .sim-btn[data-sim="child"].active { background:#43a047; color:#fff; }
   .sim-btn[data-sim="youth"] { border-color:#1e88a8; color:#166a84; }
   .sim-btn[data-sim="youth"].active { background:#1e88a8; color:#fff; }
-  .sim-btn[data-sim="college"] { border-color:#3d648f; color:#2f4f73; }
-  .sim-btn[data-sim="college"].active { background:#3d648f; color:#fff; }
+  .sim-btn[data-sim="dazhuan"] { border-color:#3d7ea6; color:#2f6484; }
+  .sim-btn[data-sim="dazhuan"].active { background:#3d7ea6; color:#fff; }
+  .sim-btn[data-sim="youngpro"] { border-color:#3d648f; color:#2f4f73; }
+  .sim-btn[data-sim="youngpro"].active { background:#3d648f; color:#fff; }
+  .sim-btn[data-sim="allYouth"] { border-color:#2e7d32; color:#256b29; }
+  .sim-btn[data-sim="allYouth"].active { background:#2e7d32; color:#fff; }
   .sim-btn[data-sim="other"] { border-color:#7a8ba0; color:#5d6d80; }
   .sim-btn[data-sim="other"].active { background:#7a8ba0; color:#fff; }
   #simYearsRow button[data-years] { font-size:13px; padding:5px 12px; border:1px solid var(--line); background:#fff; border-radius:999px; cursor:pointer; color:var(--ink); line-height:1.4; }
@@ -168,7 +172,9 @@
       <span class="slabel">解方模擬：</span>
       <button class="sim-btn" data-sim="child">每年帶進10個兒童</button>
       <button class="sim-btn" data-sim="youth">每年帶進10個青少年</button>
-      <button class="sim-btn" data-sim="college">每年帶進10個青職</button>
+      <button class="sim-btn" data-sim="dazhuan">每年帶進10個大專</button>
+      <button class="sim-btn" data-sim="youngpro">每年帶進10個青職</button>
+      <button class="sim-btn" data-sim="allYouth">每年帶進10個青年人</button>
       <button class="sim-btn" data-sim="other">每年帶進10個其他年齡</button>
     </div>
     <div class="sim-row" id="simYearsRow" style="display:none">
@@ -533,20 +539,21 @@ function showGroupDetail(entry) {
 const SIM_DEFS = [
   { key: 'child', label: '兒童', lo: 0, hi: 12 },
   { key: 'youth', label: '青少年', lo: 13, hi: 18 },
-  { key: 'college', label: '青職', lo: 19, hi: 35 },
+  { key: 'dazhuan', label: '大專', lo: 19, hi: 22 },
+  { key: 'youngpro', label: '青職', lo: 22, hi: 35 },
+  { key: 'allYouth', label: '青年人', lo: 0, hi: 35 },
   { key: 'other', label: '其他年齡', lo: 36, hi: 94 }
 ];
-let simOn = { child: false, youth: false, college: false, other: false };
+let simOn = { child: false, youth: false, dazhuan: false, youngpro: false, allYouth: false, other: false };
 let simYears = 10;
 const simActive = () => SIM_DEFS.some(d => simOn[d.key]);
 
-function scopeDistrictCount(scope) {
-  if (scope === '總數') return Object.keys(DATA.care_districts).reduce((a, g) => a + DATA.care_districts[g].length, 0);
-  if (isRegion(scope)) return REGIONS[scope].reduce((a, g) => a + DATA.care_districts[g].length, 0);
-  if (isCare(scope)) return DATA.care_districts[scope].length;
-  return 1;
+function simCount() {
+  if (curScope === '總數') return 500;
+  if (isRegion(curScope)) return 50 * REGIONS[curScope].length;
+  if (isCare(curScope)) return 50;
+  return 10;
 }
-const simCount = () => 10 * scopeDistrictCount(curScope);
 
 function simWeights(def) {
   const w = [];
@@ -611,7 +618,7 @@ function simSummary(sim) {
   const net = dy - ds;
   let impl;
   if (net >= 2) impl = '持續每年帶進，可逐步改善金字塔結構。';
-  else if (net <= -2) impl = '這樣的組合會使結構更老化，宜加重兒童／青少年／青職的帶進。';
+  else if (net <= -2) impl = '這樣的組合會使結構更老化，宜加重青年世代的帶進。';
   else impl = '宜搭配其他年齡層的帶進，效果會更明顯。';
   impl += '模擬只計年齡推移與帶進的人，不含死亡、流失與自然出生；重點是比較有解方與無解方的差異。';
   let verdict, word;
@@ -635,7 +642,7 @@ function updateSimUI() {
     b.classList.toggle('active', parseInt(b.getAttribute('data-years'), 10) === simYears);
   });
   if (any) {
-    document.getElementById('simNote').textContent = '模擬說明：以目前顯示的年份與範圍為起點，每年先老化一年（各段 1/5 移入下一段，90+ 累積），再帶進當年的人；帶進的人男女各半、年齡在該段內均勻分布（90+ 段按 5 歲計）；青職指 19–35 歲，其他年齡指 36 歲以上；每大區每年 10 人，範圍越大按所含大區數等比例放大（目前每組每年 ' + fmt(n) + ' 人）；不含死亡、流失與自然出生，重點是比較有解方與無解方的差異。';
+    document.getElementById('simNote').textContent = '模擬說明：以目前顯示的年份與範圍為起點，每年先老化一年（各段 1/5 移入下一段，90+ 累積），再帶進當年的人；帶進的人男女各半、年齡在該段內均勻分布（90+ 段按 5 歲計）；大專指 19–22 歲，青職指 22–35 歲，青年人指 0–35 歲，其他年齡指 36 歲以上；量級為大區每組 10 人、照顧區每組 50 人、方位合計每組 50×照顧區數、全召會每組 500 人（目前每組每年 ' + fmt(n) + ' 人）；不含死亡、流失與自然出生，重點是比較有解方與無解方的差異。';
   }
 }
 
