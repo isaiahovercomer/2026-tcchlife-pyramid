@@ -57,6 +57,23 @@
   .group-row button.active { background:var(--accent); color:#fff; border-color:var(--accent); }
   .prow.dim { opacity:.35; }
   #groupFrame { fill:rgba(217,164,0,0.08); stroke:#d9a400; stroke-width:2.5; vector-effect:non-scaling-stroke; }
+  .sim-box { border:1px solid #cfe3d8; background:#f2f8f4; border-radius:12px; padding:10px 12px; margin:2px 0 10px; flex-shrink:0; }
+  .sim-row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .sim-row + .sim-row { margin-top:8px; }
+  .slabel { font-size:13px; font-weight:700; color:#2e7d32; flex-shrink:0; }
+  .sim-btn { font-size:13px; padding:6px 12px; border:1.5px solid; border-radius:999px; cursor:pointer; background:#fff; line-height:1.4; }
+  .sim-btn[data-sim="child"] { border-color:#43a047; color:#2e7d32; }
+  .sim-btn[data-sim="child"].active { background:#43a047; color:#fff; }
+  .sim-btn[data-sim="youth"] { border-color:#1e88a8; color:#166a84; }
+  .sim-btn[data-sim="youth"].active { background:#1e88a8; color:#fff; }
+  .sim-btn[data-sim="college"] { border-color:#3d648f; color:#2f4f73; }
+  .sim-btn[data-sim="college"].active { background:#3d648f; color:#fff; }
+  .sim-btn[data-sim="other"] { border-color:#7a8ba0; color:#5d6d80; }
+  .sim-btn[data-sim="other"].active { background:#7a8ba0; color:#fff; }
+  #simYearsRow button[data-years] { font-size:13px; padding:5px 12px; border:1px solid var(--line); background:#fff; border-radius:999px; cursor:pointer; color:var(--ink); line-height:1.4; }
+  #simYearsRow button[data-years].active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .sim-clear { font-size:12px; color:var(--muted); background:none; border:none; cursor:pointer; text-decoration:underline; padding:5px 6px; }
+  .sim-note { font-size:12px; color:var(--muted); line-height:1.7; margin-top:8px; }
   .shot-row { display:flex; justify-content:flex-end; margin:2px 0 10px; flex-shrink:0; }
   .shot-btn { font-size:15px; font-weight:700; padding:9px 20px; border:none; background:var(--accent); color:#fff; border-radius:12px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.15); line-height:1.4; }
   .shot-btn:active { transform:translateY(1px); }
@@ -146,6 +163,24 @@
     <button data-group="youngpro">青職 23–35歲</button>
   </div>
   <div class="shot-row"><button id="btnShot" class="shot-btn">一鍵截圖</button></div>
+  <div class="sim-box">
+    <div class="sim-row">
+      <span class="slabel">解方模擬：</span>
+      <button class="sim-btn" data-sim="child">每年帶進10個兒童</button>
+      <button class="sim-btn" data-sim="youth">每年帶進10個青少年</button>
+      <button class="sim-btn" data-sim="college">每年帶進10個青職</button>
+      <button class="sim-btn" data-sim="other">每年帶進10個其他年齡</button>
+    </div>
+    <div class="sim-row" id="simYearsRow" style="display:none">
+      <span class="slabel">模擬年數：</span>
+      <button data-years="1">1年</button>
+      <button data-years="3">3年</button>
+      <button data-years="5">5年</button>
+      <button data-years="10">10年</button>
+      <button class="sim-clear" id="simClear">清除模擬</button>
+    </div>
+    <div class="sim-note" id="simNote" style="display:none"></div>
+  </div>
   <div id="summary" class="summary sum-yellow"><span class="dot"></span><b class="verdict"></b><span id="sumText"></span></div>
   <div class="detail" id="detail">載入數據中…</div>
   <div id="warn" class="warn" style="display:none"></div>
@@ -311,6 +346,20 @@ function buildControls() {
       render();
     };
   });
+  document.querySelectorAll('.sim-btn').forEach(btn => {
+    btn.onclick = () => {
+      const key = btn.getAttribute('data-sim');
+      simOn[key] = !simOn[key];
+      render();
+    };
+  });
+  document.querySelectorAll('#simYearsRow button[data-years]').forEach(btn => {
+    btn.onclick = () => { simYears = parseInt(btn.getAttribute('data-years'), 10); render(); };
+  });
+  document.getElementById('simClear').onclick = () => {
+    SIM_DEFS.forEach(d => { simOn[d.key] = false; });
+    render();
+  };
 }
 
 function assess(entry) {
@@ -481,23 +530,134 @@ function showGroupDetail(entry) {
   document.getElementById('detail').textContent = g.label + '（' + g.range + '歲）：弟兄 ' + fmt(t.m) + ' 人，姊妹 ' + fmt(t.f) + ' 人，合計 ' + fmt(t.t) + ' 人（按涵蓋的 5 年段加總）';
 }
 
+const SIM_DEFS = [
+  { key: 'child', label: '兒童', lo: 0, hi: 12 },
+  { key: 'youth', label: '青少年', lo: 13, hi: 18 },
+  { key: 'college', label: '青職', lo: 19, hi: 35 },
+  { key: 'other', label: '其他年齡', lo: 36, hi: 94 }
+];
+let simOn = { child: false, youth: false, college: false, other: false };
+let simYears = 10;
+const simActive = () => SIM_DEFS.some(d => simOn[d.key]);
+
+function scopeDistrictCount(scope) {
+  if (scope === '總數') return Object.keys(DATA.care_districts).reduce((a, g) => a + DATA.care_districts[g].length, 0);
+  if (isRegion(scope)) return REGIONS[scope].reduce((a, g) => a + DATA.care_districts[g].length, 0);
+  if (isCare(scope)) return DATA.care_districts[scope].length;
+  return 1;
+}
+const simCount = () => 10 * scopeDistrictCount(curScope);
+
+function simWeights(def) {
+  const w = [];
+  const total = def.hi - def.lo + 1;
+  for (let i = 0; i < 19; i++) {
+    const bLo = 5 * i, bHi = i === 18 ? 94 : 5 * i + 4;
+    const overlap = Math.max(0, Math.min(def.hi, bHi) - Math.max(def.lo, bLo) + 1);
+    w.push(overlap / total);
+  }
+  return w;
+}
+
+function ageBands(bands) {
+  const nb = [];
+  for (let i = 0; i < 19; i++) nb.push([0, 0]);
+  for (let i = 0; i < 19; i++) {
+    for (let s = 0; s < 2; s++) {
+      const stay = bands[i][s] * 0.8, move = bands[i][s] * 0.2;
+      if (i < 18) { nb[i][s] += stay; nb[i + 1][s] += move; }
+      else nb[i][s] += stay + move;
+    }
+  }
+  return nb;
+}
+
+function simulate(base0) {
+  const count = simCount();
+  const adds = SIM_DEFS.filter(d => simOn[d.key]).map(d => ({ w: simWeights(d), count }));
+  let base = base0.bands.map(p => [p[0], p[1]]);
+  let sim = base0.bands.map(p => [p[0], p[1]]);
+  for (let t = 0; t < simYears; t++) {
+    base = ageBands(base);
+    sim = ageBands(sim);
+    adds.forEach(a => {
+      for (let i = 0; i < 19; i++) {
+        sim[i][0] += a.count * a.w[i] * 0.5;
+        sim[i][1] += a.count * a.w[i] * 0.5;
+      }
+    });
+  }
+  const simEntry = Forecast.entryFromBands(sim);
+  const baseEntry = Forecast.entryFromBands(base);
+  simEntry.estimatedStats = true; simEntry.youthEstimated = true;
+  baseEntry.estimatedStats = true; baseEntry.youthEstimated = true;
+  return { simEntry, baseEntry, count };
+}
+
+function simSummary(sim) {
+  const s = sim.simEntry, b = sim.baseEntry;
+  const childPct = e => e.bands.slice(0, 3).reduce((a, p) => a + p[0] + p[1], 0) / e.total * 100;
+  const seniorPct = e => e.bands.slice(13).reduce((a, p) => a + p[0] + p[1], 0) / e.total * 100;
+  const dy = s.youth_pct - b.youth_pct, dc = childPct(s) - childPct(b), ds = seniorPct(s) - seniorPct(b);
+  const groupsText = SIM_DEFS.filter(d => simOn[d.key]).map(d => d.label);
+  const bringText = groupsText.length === 1 ? '每年帶進 ' + fmt(sim.count) + ' 個' + groupsText[0] : '每年帶進' + groupsText.join('、') + '各 ' + fmt(sim.count) + ' 個';
+  const numbers = '模擬 ' + simYears + ' 年後，' + bringText + '：總數 ' + fmt(s.total) + ' 人（不行動 ' + fmt(b.total) + ' 人，' + (s.total >= b.total ? '多 ' : '少 ') + fmt(Math.abs(s.total - b.total)) + ' 人）；青年 ' + num1(s.youth_pct) + '%（不行動 ' + num1(b.youth_pct) + '%）；幼年 ' + num1(childPct(s)) + '%（不行動 ' + num1(childPct(b)) + '%）；高齡 ' + num1(seniorPct(s)) + '%（不行動 ' + num1(seniorPct(b)) + '%）；形狀 ' + shapeOf(s) + '（不行動 ' + shapeOf(b) + '）。';
+  const f = v => (v >= 0 ? '提升 ' : '下降 ') + num1(Math.abs(v)) + ' 個百分點';
+  let qual;
+  if (Math.abs(dy) < 0.5 && Math.abs(ds) < 0.5) qual = '對整體結構影響輕微。';
+  else if (dy > 0 && ds < 0) qual = '結構朝年輕方向改善：青年占比' + f(dy) + '、高齡占比' + f(ds) + '。';
+  else if (dy < 0 && ds > 0) qual = '結構朝老化方向移動：青年占比' + f(dy) + '、高齡占比' + f(ds) + '。';
+  else qual = '青年占比' + f(dy) + '、高齡占比' + f(ds) + '。';
+  const net = dy - ds;
+  let impl;
+  if (net >= 2) impl = '持續每年帶進，可逐步改善金字塔結構。';
+  else if (net <= -2) impl = '這樣的組合會使結構更老化，宜加重兒童／青少年／青職的帶進。';
+  else impl = '宜搭配其他年齡層的帶進，效果會更明顯。';
+  impl += '模擬只計年齡推移與帶進的人，不含死亡、流失與自然出生；重點是比較有解方與無解方的差異。';
+  let verdict, word;
+  if (net >= 2) { verdict = 'green'; word = '結構改善'; }
+  else if (net <= -2) { verdict = 'red'; word = '結構老化'; }
+  else { verdict = 'yellow'; word = '變化輕微'; }
+  return { verdict, word, plain: numbers + qual + impl, html: numbers + '<b>' + qual + '</b>' + '<b>' + impl + '</b>' };
+}
+
+function updateSimUI() {
+  const n = simCount();
+  document.querySelectorAll('.sim-btn').forEach(b => {
+    const d = SIM_DEFS.find(x => x.key === b.getAttribute('data-sim'));
+    b.textContent = '每年帶進' + fmt(n) + '個' + d.label;
+    b.classList.toggle('active', !!simOn[d.key]);
+  });
+  const any = simActive();
+  document.getElementById('simYearsRow').style.display = any ? 'flex' : 'none';
+  document.getElementById('simNote').style.display = any ? 'block' : 'none';
+  document.querySelectorAll('#simYearsRow button[data-years]').forEach(b => {
+    b.classList.toggle('active', parseInt(b.getAttribute('data-years'), 10) === simYears);
+  });
+  if (any) {
+    document.getElementById('simNote').textContent = '模擬說明：以目前顯示的年份與範圍為起點，每年先老化一年（各段 1/5 移入下一段，90+ 累積），再帶進當年的人；帶進的人男女各半、年齡在該段內均勻分布（90+ 段按 5 歲計）；青職指 19–35 歲，其他年齡指 36 歲以上；每大區每年 10 人，範圍越大按所含大區數等比例放大（目前每組每年 ' + fmt(n) + ' 人）；不含死亡、流失與自然出生，重點是比較有解方與無解方的差異。';
+  }
+}
+
 function downloadShot() {
-  const entry = getEntry(curYear, curScope);
+  let entry = getEntry(curYear, curScope);
   if (!entry) return;
+  const sim = simActive() ? simulate(entry) : null;
+  if (sim) entry = sim.simEntry;
   const W = 900, pad = 44, cx = W / 2, maxBar = 300, rowH = 26;
   const font = '"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif';
   const maxVal = Math.max.apply(null, entry.bands.flat());
   const wOf = v => maxVal ? (scaleMode === 'enhanced' ? Math.pow(v / maxVal, 1.5) * 100 : v / maxVal * 100) : 0;
   const maleCol = isFC(curYear) ? '#a8c0d8' : '#3d648f';
   const femaleCol = isFC(curYear) ? '#e0b3a8' : '#a85a4e';
-  const scopeName = curScope === '總數' ? '台中市召會總數' : (isCare(curScope) ? curScope + '照顧區' : (isRegion(curScope) ? curScope : curScope + '大區'));
+  const scopeName = (curScope === '總數' ? '台中市召會總數' : (isCare(curScope) ? curScope + '照顧區' : (isRegion(curScope) ? curScope : curScope + '大區'))) + (sim ? '（模擬' + simYears + '年後）' : '');
   const yearNote = isFC(curYear) ? '預估' : (curYear === '2026' ? '累計至今' : '實際');
   let ageLine = '';
   if (birthYear) {
     const age = parseInt(curYear, 10) - birthYear;
     ageLine = age < 0 ? curYear + '年，你尚未出生' : curYear + '年，你 ' + age + ' 歲（' + ageBand(age).stage + '）';
   }
-  const a = groupSel ? groupSummary(entry) : assess(entry);
+  const a = sim ? simSummary(sim) : (groupSel ? groupSummary(entry) : assess(entry));
   const cvs = document.createElement('canvas');
   const ctx = cvs.getContext('2d');
   function wrap(text, maxW, f) {
@@ -610,7 +770,7 @@ function downloadShot() {
 }
 
 function render() {
-  const entry = getEntry(curYear, curScope);
+  let entry = getEntry(curYear, curScope);
   const errEl = document.getElementById('err');
   if (!entry) {
     errEl.style.display = 'block';
@@ -618,12 +778,15 @@ function render() {
     return;
   }
   errEl.style.display = 'none';
+  const sim = simActive() ? simulate(entry) : null;
+  if (sim) entry = sim.simEntry;
+  updateSimUI();
   document.body.classList.toggle('is-fc', isFC(curYear));
   document.getElementById('fBadge').style.display = isFC(curYear) ? 'inline-block' : 'none';
 
   const scopeName = curScope === '總數' ? '台中市召會總數' : (isCare(curScope) ? curScope + '照顧區' : (isRegion(curScope) ? curScope : curScope + '大區'));
   const yearNote = isFC(curYear) ? '預估' : (curYear === '2026' ? '累計至今' : '實際');
-  document.getElementById('curLine').innerHTML = '目前顯示：<b>' + curYear + '年（' + yearNote + '）</b>｜範圍：<b>' + scopeName + '</b>';
+  document.getElementById('curLine').innerHTML = '目前顯示：<b>' + curYear + '年（' + yearNote + '）</b>｜範圍：<b>' + scopeName + '</b>' + (sim ? '｜模擬 ' + simYears + ' 年後' : '');
   renderAge();
 
   document.getElementById('cTotal').textContent = fmt(entry.total);
@@ -726,7 +889,7 @@ function render() {
   }
   svg.style.display = (outlineOn || groupSel) ? 'block' : 'none';
 
-  const a = groupSel ? groupSummary(entry) : assess(entry);
+  const a = sim ? simSummary(sim) : (groupSel ? groupSummary(entry) : assess(entry));
   const sumEl = document.getElementById('summary');
   sumEl.className = 'summary sum-' + a.verdict;
   sumEl.querySelector('.verdict').textContent = a.word;
