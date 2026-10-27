@@ -540,7 +540,7 @@ const SIM_DEFS = [
   { key: 'child', label: '兒童', lo: 0, hi: 12 },
   { key: 'youth', label: '青少年', lo: 13, hi: 18 },
   { key: 'dazhuan', label: '大專', lo: 19, hi: 22 },
-  { key: 'youngpro', label: '青職', lo: 22, hi: 35 },
+  { key: 'youngpro', label: '青職', lo: 23, hi: 35 },
   { key: 'allYouth', label: '青年人', lo: 0, hi: 35 },
   { key: 'other', label: '其他年齡', lo: 36, hi: 94 }
 ];
@@ -642,7 +642,7 @@ function updateSimUI() {
     b.classList.toggle('active', parseInt(b.getAttribute('data-years'), 10) === simYears);
   });
   if (any) {
-    document.getElementById('simNote').textContent = '模擬說明：以目前顯示的年份與範圍為起點，每年先老化一年（各段 1/5 移入下一段，90+ 累積），再帶進當年的人；帶進的人男女各半、年齡在該段內均勻分布（90+ 段按 5 歲計）；大專指 19–22 歲，青職指 22–35 歲，青年人指 0–35 歲，其他年齡指 36 歲以上；量級為大區每組 10 人、照顧區每組 50 人、方位合計每組 50×照顧區數、全召會每組 500 人（目前每組每年 ' + fmt(n) + ' 人）；不含死亡、流失與自然出生，重點是比較有解方與無解方的差異。';
+    document.getElementById('simNote').textContent = '模擬說明：以目前顯示的年份與範圍為起點，每年先老化一年（各段 1/5 移入下一段，90+ 累積），再帶進當年的人；帶進的人男女各半、年齡在該段內均勻分布（90+ 段按 5 歲計）；大專指 19–22 歲，青職指 23–35 歲，青年人指 0–35 歲，其他年齡指 36 歲以上；量級為大區每組 10 人、照顧區每組 50 人、方位合計每組 50×照顧區數、全召會每組 500 人（目前每組每年 ' + fmt(n) + ' 人）；不含死亡、流失與自然出生，重點是比較有解方與無解方的差異。';
   }
 }
 
