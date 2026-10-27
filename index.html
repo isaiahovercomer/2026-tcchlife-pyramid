@@ -212,10 +212,13 @@ const fmt = n => n.toLocaleString('en-US');
 const num1 = v => (Math.round(v * 10) / 10).toString();
 const isFC = y => FC_YEARS.indexOf(y) >= 0;
 const isCare = s => DATA && Object.prototype.hasOwnProperty.call(DATA.care_districts, s);
+const REGIONS = { '南各照顧區': ['南一', '南二', '南三'], '北各照顧區': ['北一', '北二'], '西各照顧區': ['西一', '西二'], '中各照顧區': ['中一', '中二', '中三'] };
+const isRegion = s => Object.prototype.hasOwnProperty.call(REGIONS, s);
+const scopeDistricts = s => isRegion(s) ? REGIONS[s].reduce((a, g) => a.concat(DATA.care_districts[g]), []) : DATA.care_districts[s];
 const memo = {};
 
 function scopeBands(year, scope) {
-  if (isCare(scope)) return Forecast.sumBands(DATA.care_districts[scope].map(d => DATA.years[year][d].bands));
+  if (isCare(scope) || isRegion(scope)) return Forecast.sumBands(scopeDistricts(scope).map(d => DATA.years[year][d].bands));
   return DATA.years[year][scope].bands;
 }
 
@@ -227,10 +230,10 @@ function getEntry(year, scope) {
     if (typeof Forecast === 'undefined') return null;
     e = Forecast.projectScope(scopeBands('2023', scope), scopeBands('2025', scope), scopeBands('2026', scope))[year];
     e.forecast = true; e.estimatedStats = true; e.youthEstimated = true;
-  } else if (isCare(scope)) {
+  } else if (isCare(scope) || isRegion(scope)) {
     e = Forecast.entryFromBands(scopeBands(year, scope));
-    e.missing_birth_year = DATA.care_districts[scope].reduce((a, d) => a + (DATA.years[year][d].missing_birth_year || 0), 0);
-    e.unspecified_gender = DATA.care_districts[scope].reduce((a, d) => a + (DATA.years[year][d].unspecified_gender || 0), 0);
+    e.missing_birth_year = scopeDistricts(scope).reduce((a, d) => a + (DATA.years[year][d].missing_birth_year || 0), 0);
+    e.unspecified_gender = scopeDistricts(scope).reduce((a, d) => a + (DATA.years[year][d].unspecified_gender || 0), 0);
     e.estimatedStats = true; e.youthEstimated = true;
   } else {
     e = DATA.years[year][scope];
@@ -269,6 +272,13 @@ function buildControls() {
   const oT = document.createElement('option');
   oT.value = '總數'; oT.textContent = '台中市召會總數';
   sel.appendChild(oT);
+  const ogR = document.createElement('optgroup'); ogR.label = '方位合計';
+  Object.keys(REGIONS).forEach(r => {
+    const o = document.createElement('option');
+    o.value = r; o.textContent = r;
+    ogR.appendChild(o);
+  });
+  sel.appendChild(ogR);
   const ogC = document.createElement('optgroup'); ogC.label = '照顧區合計';
   Object.keys(DATA.care_districts).forEach(g => {
     const o = document.createElement('option');
