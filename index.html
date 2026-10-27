@@ -434,7 +434,7 @@ function downloadShot() {
   const wOf = v => maxVal ? (scaleMode === 'enhanced' ? Math.pow(v / maxVal, 1.5) * 100 : v / maxVal * 100) : 0;
   const maleCol = isFC(curYear) ? '#a8c0d8' : '#3d648f';
   const femaleCol = isFC(curYear) ? '#e0b3a8' : '#a85a4e';
-  const scopeName = curScope === '總數' ? '台中市召會總數' : (isCare(curScope) ? curScope + '照顧區' : curScope + '大區');
+  const scopeName = curScope === '總數' ? '台中市召會總數' : (isCare(curScope) ? curScope + '照顧區' : (isRegion(curScope) ? curScope : curScope + '大區'));
   const yearNote = isFC(curYear) ? '預估' : (curYear === '2026' ? '累計至今' : '實際');
   let ageLine = '';
   if (birthYear) {
@@ -565,7 +565,7 @@ function render() {
   document.body.classList.toggle('is-fc', isFC(curYear));
   document.getElementById('fBadge').style.display = isFC(curYear) ? 'inline-block' : 'none';
 
-  const scopeName = curScope === '總數' ? '台中市召會總數' : (isCare(curScope) ? curScope + '照顧區' : curScope + '大區');
+  const scopeName = curScope === '總數' ? '台中市召會總數' : (isCare(curScope) ? curScope + '照顧區' : (isRegion(curScope) ? curScope : curScope + '大區'));
   const yearNote = isFC(curYear) ? '預估' : (curYear === '2026' ? '累計至今' : '實際');
   document.getElementById('curLine').innerHTML = '目前顯示：<b>' + curYear + '年（' + yearNote + '）</b>｜範圍：<b>' + scopeName + '</b>';
   renderAge();
