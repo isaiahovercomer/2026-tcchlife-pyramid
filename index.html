@@ -8,8 +8,8 @@
   :root { --paper:#faf6ef; --card:#ffffff; --ink:#3b332a; --muted:#8a7f70; --line:#ece2d0; --male:#3d648f; --female:#a85a4e; --accent:#8a6d3b; --fc:#b07d2b; }
   body.is-fc { --male:#a8c0d8; --female:#e0b3a8; }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--paper); color:var(--ink); font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif; line-height:1.6; }
-  .wrap { max-width:860px; margin:0 auto; padding:14px 16px 8px; height:100dvh; display:flex; flex-direction:column; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif; line-height:1.6; -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+  .wrap { max-width:860px; margin:0 auto; padding:14px 16px 8px; height:100vh; height:100dvh; display:flex; flex-direction:column; }
   h1 { font-size:30px; margin:0 0 4px; line-height:1.3; }
   .badge { display:inline-block; font-size:13px; background:var(--fc); color:#fff; border-radius:6px; padding:2px 8px; vertical-align:4px; margin-left:8px; }
   .sub { color:var(--muted); font-size:13px; line-height:1.6; margin-bottom:10px; flex-shrink:0; }
