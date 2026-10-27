@@ -180,7 +180,7 @@
     <p><b>2024 年附註：</b>41 區加總的性別拆分與總數檔差 1 人（區加總男 2,429、女 3,512；總數檔男 2,428、女 3,513），總數一致，屬系統原始數據本身的差異，本頁各範圍皆照原始檔案呈現。</p>
     <p><b>2026 年附註：</b>2026 年為累計至今（製表 2026-10-26），年底結算會再增加，不宜直接與全年比較。</p>
     <p><b>照顧區：</b>照顧區合計為所屬大區數字加總；平均年齡、中位數為依年齡段估算，青年占比由年齡段推算（35 歲以下）。平均年齡、中位數、青年占比的系統值僅總數與大區有提供。</p>
-    <p><b>燈號說明：</b>綠燈（結構穩健）為青年占比 ≥45% 且 65 歲以上 ≤15% 且總數年減不超過 1%；紅燈（值得警示）為 65 歲以上 ≥30%，或 65 歲以上 ≥25% 且 0–14 歲 ≤10%；其餘為黃燈（需要留意）。燈號僅供參考，不代表對任何單位的評價。</p>
+    <p><b>燈號說明：</b>綠燈（結構穩健）為青年占比 ≥45% 且 65 歲以上 ≤15% 且總數年減不超過 1%；紅燈（值得警示）為 65 歲以上 ≥30%，或 65 歲以上 ≥25% 且 0–14 歲 ≤10%；其餘為黃燈（需要留意）。燈號僅供參考，不代表對任何單位的評價。選取特別年齡段時，總結卡片改為該年齡層的動能分析，顏色按趨勢著色。</p>
     <p><b>輪廓說明：</b>輪廓線描出目前顯示的長條外緣（依目前比例模式），大致形狀由底部（0–9 歲平均）、最寬段、頂端（85 歲以上平均）三者比較而得：底部最寬且頂端收尖為正三角，頂端最寬且底部收尖為倒三角，上下接近等寬為長方形，底部寬、頂端較窄為梯形，頂端寬、底部較窄為倒梯形，底部與頂端都窄、中段外凸為壺形；僅供直觀參考。</p>
   </details>
 </div>
@@ -362,6 +362,62 @@ function assess(entry) {
   };
 }
 
+function groupSummary(entry) {
+  const g = GROUPS.find(x => x.key === groupSel);
+  if (!g) return assess(entry);
+  const t = groupTotal(entry, g.bands);
+  const scopeTot = entry.total;
+  const share = scopeTot > 0 ? t.t / scopeTot * 100 : 0;
+  const yearWord = isFC(curYear) ? '推估 ' : (curYear === '2026' ? '累計至今 ' : '');
+  const numbers = g.label + '（' + g.range + '歲）' + curYear + '年' + yearWord + fmt(t.t) + ' 人，佔全部 ' + num1(share) + '%（弟兄 ' + fmt(t.m) + ' 人，姊妹 ' + fmt(t.f) + ' 人，按 5 年段加總）。';
+  let trendAnn = null, trendText = '', shareChg = null;
+  if (isFC(curYear)) {
+    const base = groupTotal(getEntry('2026', curScope), g.bands);
+    const baseTot = getEntry('2026', curScope).total;
+    const horizon = parseInt(curYear, 10) - 2026;
+    trendAnn = base.t > 0 ? (Math.pow(t.t / base.t, 1 / horizon) - 1) * 100 : null;
+    const dc = base.t > 0 ? (t.t / base.t - 1) * 100 : 0;
+    trendText = '推估' + curYear + '年約 ' + fmt(t.t) + ' 人，較 2026 年' + (dc >= 0 ? '增加 ' : '減少 ') + num1(Math.abs(dc)) + '%。';
+    shareChg = baseTot > 0 ? share - base.t / baseTot * 100 : null;
+  } else if (curYear === '2026') {
+    const e23 = groupTotal(getEntry('2023', curScope), g.bands), e25 = groupTotal(getEntry('2025', curScope), g.bands);
+    const t23 = getEntry('2023', curScope).total, t25 = getEntry('2025', curScope).total;
+    trendAnn = e23.t > 0 ? (Math.sqrt(e25.t / e23.t) - 1) * 100 : null;
+    trendText = '近兩年（2023→2025）每年' + (trendAnn === null ? '變化尚無可比基期。' : (trendAnn < 0 ? '減少約 ' + num1(Math.abs(trendAnn)) + '%（' + fmt(e23.t) + ' → ' + fmt(e25.t) + ' 人）。' : '增加約 ' + num1(trendAnn) + '%（' + fmt(e23.t) + ' → ' + fmt(e25.t) + ' 人）。'));
+    shareChg = (t23 > 0 && t25 > 0) ? (e25.t / t25 * 100 - e23.t / t23 * 100) : null;
+  } else if (curYear === '2023') {
+    trendText = '2023 年為四年基期起點。';
+  } else {
+    const prevY = String(parseInt(curYear, 10) - 1);
+    const prev = groupTotal(getEntry(prevY, curScope), g.bands);
+    const prevTot = getEntry(prevY, curScope).total;
+    trendAnn = prev.t > 0 ? (t.t / prev.t - 1) * 100 : null;
+    trendText = '較前一年' + (trendAnn !== null && trendAnn < 0 ? '減少 ' + num1(Math.abs(trendAnn)) + '%（' + fmt(prev.t) + ' → ' + fmt(t.t) + ' 人）。' : '變化 ' + num1(trendAnn || 0) + '%。');
+    shareChg = (prevTot > 0 && scopeTot > 0) ? (share - prev.t / prevTot * 100) : null;
+  }
+  let qual;
+  if (trendAnn === null) qual = '以此年為基期，後續再看變化。';
+  else if (trendAnn >= 1 && shareChg !== null && shareChg >= 0) qual = '人數與佔比同步上升，動能良好。';
+  else if (trendAnn <= -1 && shareChg !== null && shareChg < 0) qual = '人數與佔比同步下滑，動能轉弱。';
+  else if (trendAnn >= 1) qual = '人數成長但佔比未升，動能跟著整體走。';
+  else if (trendAnn <= -1) qual = '人數減少但佔比未降，相對抗跌。';
+  else qual = '人數大致持平，結構穩定。';
+  const watch = {
+    child: '兒童是未來青少年與大專的來源，宜留意兒童工作的留人與銜接。',
+    youth: '青少年銜接大專與青職，宜留意升學與畢業後的留人。',
+    college: '大專階段流動快，畢業後能否銜接青職是關鍵。',
+    youngpro: '青職是召會生活的中堅，宜留意工作與家庭階段的照顧，避免流失。'
+  };
+  let impl = watch[g.key] || '';
+  if (trendAnn !== null && trendAnn <= -5) impl = '流失速度快，宜優先關心流失原因與留人。' + impl;
+  else if (trendAnn !== null && trendAnn >= 2) impl = '宜鞏固現有培育與留人。' + impl;
+  let verdict, word;
+  if (trendAnn !== null && trendAnn <= -5) { verdict = 'red'; word = '值得警示'; }
+  else if (trendAnn !== null && trendAnn >= 1) { verdict = 'green'; word = '動能良好'; }
+  else { verdict = 'yellow'; word = '需要留意'; }
+  return { verdict, word, plain: numbers + trendText + qual + impl, html: numbers + trendText + '<b>' + qual + '</b>' + '<b>' + impl + '</b>' };
+}
+
 function shapeOf(entry) {
   const tot = i => entry.bands[i][0] + entry.bands[i][1];
   const Wb = (tot(0) + tot(1)) / 2;
@@ -441,7 +497,7 @@ function downloadShot() {
     const age = parseInt(curYear, 10) - birthYear;
     ageLine = age < 0 ? curYear + '年，你尚未出生' : curYear + '年，你 ' + age + ' 歲（' + ageBand(age).stage + '）';
   }
-  const a = assess(entry);
+  const a = groupSel ? groupSummary(entry) : assess(entry);
   const cvs = document.createElement('canvas');
   const ctx = cvs.getContext('2d');
   function wrap(text, maxW, f) {
@@ -670,7 +726,7 @@ function render() {
   }
   svg.style.display = (outlineOn || groupSel) ? 'block' : 'none';
 
-  const a = assess(entry);
+  const a = groupSel ? groupSummary(entry) : assess(entry);
   const sumEl = document.getElementById('summary');
   sumEl.className = 'summary sum-' + a.verdict;
   sumEl.querySelector('.verdict').textContent = a.word;
