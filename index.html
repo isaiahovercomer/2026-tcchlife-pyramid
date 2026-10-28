@@ -58,26 +58,22 @@
   .prow.dim { opacity:.35; }
   #groupFrame { fill:rgba(217,164,0,0.08); stroke:#d9a400; stroke-width:2.5; vector-effect:non-scaling-stroke; }
   .sim-box { border:1px solid #cfe3d8; background:#f2f8f4; border-radius:12px; padding:10px 12px; margin:2px 0 10px; flex-shrink:0; }
-  .sim-row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
-  .sim-row + .sim-row { margin-top:8px; }
+  .sim-head { display:flex; justify-content:space-between; align-items:center; }
   .slabel { font-size:13px; font-weight:700; color:#2e7d32; flex-shrink:0; }
-  .sim-btn { font-size:13px; padding:6px 12px; border:1.5px solid; border-radius:999px; cursor:pointer; background:#fff; line-height:1.4; }
-  .sim-btn[data-sim="child"] { border-color:#43a047; color:#2e7d32; }
-  .sim-btn[data-sim="child"].active { background:#43a047; color:#fff; }
-  .sim-btn[data-sim="youth"] { border-color:#1e88a8; color:#166a84; }
-  .sim-btn[data-sim="youth"].active { background:#1e88a8; color:#fff; }
-  .sim-btn[data-sim="dazhuan"] { border-color:#3d7ea6; color:#2f6484; }
-  .sim-btn[data-sim="dazhuan"].active { background:#3d7ea6; color:#fff; }
-  .sim-btn[data-sim="youngpro"] { border-color:#3d648f; color:#2f4f73; }
-  .sim-btn[data-sim="youngpro"].active { background:#3d648f; color:#fff; }
-  .sim-btn[data-sim="allYouth"] { border-color:#2e7d32; color:#256b29; }
-  .sim-btn[data-sim="allYouth"].active { background:#2e7d32; color:#fff; }
+  .sim-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; margin-top:8px; }
+  .sim-btn { font-size:13px; padding:6px 12px; border:1.5px solid; border-radius:999px; cursor:pointer; background:#fff; line-height:1.4; text-align:center; }
+  .sim-btn[data-sim="child"], .sim-btn[data-sim="youth"], .sim-btn[data-sim="dazhuan"], .sim-btn[data-sim="youngpro"] { border-color:#43a047; color:#2e7d32; }
+  .sim-btn[data-sim="child"].active, .sim-btn[data-sim="youth"].active, .sim-btn[data-sim="dazhuan"].active, .sim-btn[data-sim="youngpro"].active { background:#43a047; color:#fff; }
+  .sim-btn[data-sim="allYouth"] { border-color:#3d648f; color:#2f4f73; }
+  .sim-btn[data-sim="allYouth"].active { background:#3d648f; color:#fff; }
   .sim-btn[data-sim="other"] { border-color:#7a8ba0; color:#5d6d80; }
   .sim-btn[data-sim="other"].active { background:#7a8ba0; color:#fff; }
-  #simYearsRow button[data-years] { font-size:13px; padding:5px 12px; border:1px solid var(--line); background:#fff; border-radius:999px; cursor:pointer; color:var(--ink); line-height:1.4; }
-  #simYearsRow button[data-years].active { background:var(--accent); color:#fff; border-color:var(--accent); }
   .sim-clear { font-size:12px; color:var(--muted); background:none; border:none; cursor:pointer; text-decoration:underline; padding:5px 6px; }
   .sim-note { font-size:12px; color:var(--muted); line-height:1.7; margin-top:8px; }
+  @media (max-width:600px) {
+    .sim-grid { grid-template-columns:repeat(2, 1fr); }
+    .sim-btn { font-size:12px; padding:6px 8px; }
+  }
   .shot-row { display:flex; justify-content:flex-end; margin:2px 0 10px; flex-shrink:0; }
   .shot-btn { font-size:15px; font-weight:700; padding:9px 20px; border:none; background:var(--accent); color:#fff; border-radius:12px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.15); line-height:1.4; }
   .shot-btn:active { transform:translateY(1px); }
@@ -168,22 +164,17 @@
   </div>
   <div class="shot-row"><button id="btnShot" class="shot-btn">一鍵截圖</button></div>
   <div class="sim-box">
-    <div class="sim-row">
-      <span class="slabel">解方模擬：</span>
+    <div class="sim-head">
+      <span class="slabel">尋求突破：</span>
+      <button class="sim-clear" id="simClear" style="display:none">清除</button>
+    </div>
+    <div class="sim-grid">
       <button class="sim-btn" data-sim="child">每年帶進10個兒童</button>
       <button class="sim-btn" data-sim="youth">每年帶進10個青少年</button>
       <button class="sim-btn" data-sim="dazhuan">每年帶進10個大專</button>
       <button class="sim-btn" data-sim="youngpro">每年帶進10個青職</button>
       <button class="sim-btn" data-sim="allYouth">每年帶進10個青年人</button>
       <button class="sim-btn" data-sim="other">每年帶進10個其他年齡</button>
-    </div>
-    <div class="sim-row" id="simYearsRow" style="display:none">
-      <span class="slabel">模擬年數：</span>
-      <button data-years="1">1年</button>
-      <button data-years="3">3年</button>
-      <button data-years="5">5年</button>
-      <button data-years="10">10年</button>
-      <button class="sim-clear" id="simClear">清除模擬</button>
     </div>
     <div class="sim-note" id="simNote" style="display:none"></div>
   </div>
@@ -358,9 +349,6 @@ function buildControls() {
       simOn[key] = !simOn[key];
       render();
     };
-  });
-  document.querySelectorAll('#simYearsRow button[data-years]').forEach(btn => {
-    btn.onclick = () => { simYears = parseInt(btn.getAttribute('data-years'), 10); render(); };
   });
   document.getElementById('simClear').onclick = () => {
     SIM_DEFS.forEach(d => { simOn[d.key] = false; });
@@ -545,7 +533,6 @@ const SIM_DEFS = [
   { key: 'other', label: '其他年齡', lo: 36, hi: 94 }
 ];
 let simOn = { child: false, youth: false, dazhuan: false, youngpro: false, allYouth: false, other: false };
-let simYears = 10;
 const simActive = () => SIM_DEFS.some(d => simOn[d.key]);
 
 function simCount() {
@@ -579,12 +566,16 @@ function ageBands(bands) {
   return nb;
 }
 
-function simulate(base0) {
+function simulate() {
+  const T = parseInt(curYear, 10) - 2026;
+  if (T <= 0) return null;
+  const base0 = getEntry('2026', curScope);
+  if (!base0) return null;
   const count = simCount();
   const adds = SIM_DEFS.filter(d => simOn[d.key]).map(d => ({ w: simWeights(d), count }));
   let base = base0.bands.map(p => [p[0], p[1]]);
   let sim = base0.bands.map(p => [p[0], p[1]]);
-  for (let t = 0; t < simYears; t++) {
+  for (let t = 0; t < T; t++) {
     base = ageBands(base);
     sim = ageBands(sim);
     adds.forEach(a => {
@@ -598,7 +589,7 @@ function simulate(base0) {
   const baseEntry = Forecast.entryFromBands(base);
   simEntry.estimatedStats = true; simEntry.youthEstimated = true;
   baseEntry.estimatedStats = true; baseEntry.youthEstimated = true;
-  return { simEntry, baseEntry, count };
+  return { simEntry, baseEntry, count, years: T };
 }
 
 function simSummary(sim) {
@@ -608,7 +599,7 @@ function simSummary(sim) {
   const dy = s.youth_pct - b.youth_pct, dc = childPct(s) - childPct(b), ds = seniorPct(s) - seniorPct(b);
   const groupsText = SIM_DEFS.filter(d => simOn[d.key]).map(d => d.label);
   const bringText = groupsText.length === 1 ? '每年帶進 ' + fmt(sim.count) + ' 個' + groupsText[0] : '每年帶進' + groupsText.join('、') + '各 ' + fmt(sim.count) + ' 個';
-  const numbers = '模擬 ' + simYears + ' 年後，' + bringText + '：總數 ' + fmt(s.total) + ' 人（不行動 ' + fmt(b.total) + ' 人，' + (s.total >= b.total ? '多 ' : '少 ') + fmt(Math.abs(s.total - b.total)) + ' 人）；青年 ' + num1(s.youth_pct) + '%（不行動 ' + num1(b.youth_pct) + '%）；幼年 ' + num1(childPct(s)) + '%（不行動 ' + num1(childPct(b)) + '%）；高齡 ' + num1(seniorPct(s)) + '%（不行動 ' + num1(seniorPct(b)) + '%）；形狀 ' + shapeOf(s) + '（不行動 ' + shapeOf(b) + '）。';
+  const numbers = '模擬至 ' + curYear + ' 年（自 2026 年起 ' + sim.years + ' 年），' + bringText + '：總數 ' + fmt(s.total) + ' 人（不行動 ' + fmt(b.total) + ' 人，' + (s.total >= b.total ? '多 ' : '少 ') + fmt(Math.abs(s.total - b.total)) + ' 人）；青年 ' + num1(s.youth_pct) + '%（不行動 ' + num1(b.youth_pct) + '%）；幼年 ' + num1(childPct(s)) + '%（不行動 ' + num1(childPct(b)) + '%）；高齡 ' + num1(seniorPct(s)) + '%（不行動 ' + num1(seniorPct(b)) + '%）；形狀 ' + shapeOf(s) + '（不行動 ' + shapeOf(b) + '）。';
   const f = v => (v >= 0 ? '提升 ' : '下降 ') + num1(Math.abs(v)) + ' 個百分點';
   let qual;
   if (Math.abs(dy) < 0.5 && Math.abs(ds) < 0.5) qual = '對整體結構影響輕微。';
@@ -620,7 +611,7 @@ function simSummary(sim) {
   if (net >= 2) impl = '持續每年帶進，可逐步改善金字塔結構。';
   else if (net <= -2) impl = '這樣的組合會使結構更老化，宜加重青年世代的帶進。';
   else impl = '宜搭配其他年齡層的帶進，效果會更明顯。';
-  impl += '模擬只計年齡推移與帶進的人，不含死亡、流失與自然出生；重點是比較有解方與無解方的差異。';
+  impl += '模擬只計年齡推移與帶進的人，不含死亡、流失與自然出生；重點是比較有帶進與無帶進的差異。';
   let verdict, word;
   if (net >= 2) { verdict = 'green'; word = '結構改善'; }
   else if (net <= -2) { verdict = 'red'; word = '結構老化'; }
@@ -636,20 +627,17 @@ function updateSimUI() {
     b.classList.toggle('active', !!simOn[d.key]);
   });
   const any = simActive();
-  document.getElementById('simYearsRow').style.display = any ? 'flex' : 'none';
+  document.getElementById('simClear').style.display = any ? 'inline' : 'none';
   document.getElementById('simNote').style.display = any ? 'block' : 'none';
-  document.querySelectorAll('#simYearsRow button[data-years]').forEach(b => {
-    b.classList.toggle('active', parseInt(b.getAttribute('data-years'), 10) === simYears);
-  });
   if (any) {
-    document.getElementById('simNote').textContent = '模擬說明：以目前顯示的年份與範圍為起點，每年先老化一年（各段 1/5 移入下一段，90+ 累積），再帶進當年的人；帶進的人男女各半、年齡在該段內均勻分布（90+ 段按 5 歲計）；大專指 19–22 歲，青職指 23–35 歲，青年人指 0–35 歲，其他年齡指 36 歲以上；量級為大區每組 10 人、照顧區每組 50 人、方位合計每組 50×照顧區數、全召會每組 500 人（目前每組每年 ' + fmt(n) + ' 人）；不含死亡、流失與自然出生，重點是比較有解方與無解方的差異。';
+    document.getElementById('simNote').textContent = '模擬說明：以 2026 年為起點、以上方所選年份為目標（2027 年為 1 年後、2030 年為 4 年後、2035 年為 9 年後、2040 年為 14 年後）；選實際年份時顯示該年實際數據；每年先老化一年（各段 1/5 移入下一段，90+ 累積），再帶進當年的人；帶進的人男女各半、年齡在該段內均勻分布（90+ 段按 5 歲計）；大專指 19–22 歲，青職指 23–35 歲，青年人指 0–35 歲，其他年齡指 36 歲以上；量級為大區每組 10 人、照顧區每組 50 人、方位合計每組 50×照顧區數、全召會每組 500 人（目前每組每年 ' + fmt(n) + ' 人）；不含死亡、流失與自然出生，重點是比較有帶進與無帶進的差異。';
   }
 }
 
 function downloadShot() {
   let entry = getEntry(curYear, curScope);
   if (!entry) return;
-  const sim = simActive() ? simulate(entry) : null;
+  const sim = simActive() ? simulate() : null;
   if (sim) entry = sim.simEntry;
   const W = 900, pad = 44, cx = W / 2, maxBar = 300, rowH = 26;
   const font = '"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif';
@@ -657,7 +645,7 @@ function downloadShot() {
   const wOf = v => maxVal ? (scaleMode === 'enhanced' ? Math.pow(v / maxVal, 1.5) * 100 : v / maxVal * 100) : 0;
   const maleCol = isFC(curYear) ? '#a8c0d8' : '#3d648f';
   const femaleCol = isFC(curYear) ? '#e0b3a8' : '#a85a4e';
-  const scopeName = (curScope === '總數' ? '台中市召會總數' : (isCare(curScope) ? curScope + '照顧區' : (isRegion(curScope) ? curScope : curScope + '大區'))) + (sim ? '（模擬' + simYears + '年後）' : '');
+  const scopeName = (curScope === '總數' ? '台中市召會總數' : (isCare(curScope) ? curScope + '照顧區' : (isRegion(curScope) ? curScope : curScope + '大區'))) + (sim ? '（尋求突破）' : '');
   const yearNote = isFC(curYear) ? '預估' : (curYear === '2026' ? '累計至今' : '實際');
   let ageLine = '';
   if (birthYear) {
@@ -785,7 +773,7 @@ function render() {
     return;
   }
   errEl.style.display = 'none';
-  const sim = simActive() ? simulate(entry) : null;
+  const sim = simActive() ? simulate() : null;
   if (sim) entry = sim.simEntry;
   updateSimUI();
   document.body.classList.toggle('is-fc', isFC(curYear));
@@ -793,7 +781,7 @@ function render() {
 
   const scopeName = curScope === '總數' ? '台中市召會總數' : (isCare(curScope) ? curScope + '照顧區' : (isRegion(curScope) ? curScope : curScope + '大區'));
   const yearNote = isFC(curYear) ? '預估' : (curYear === '2026' ? '累計至今' : '實際');
-  document.getElementById('curLine').innerHTML = '目前顯示：<b>' + curYear + '年（' + yearNote + '）</b>｜範圍：<b>' + scopeName + '</b>' + (sim ? '｜模擬 ' + simYears + ' 年後' : '');
+  document.getElementById('curLine').innerHTML = '目前顯示：<b>' + curYear + '年（' + yearNote + '）</b>｜範圍：<b>' + scopeName + '</b>' + (sim ? '｜尋求突破模擬' : '');
   renderAge();
 
   document.getElementById('cTotal').textContent = fmt(entry.total);
@@ -823,6 +811,10 @@ function render() {
     warn.textContent = '提醒：2024 年 41 區加總的性別拆分與總數檔差 1 人，總數一致，屬系統原始數據本身的差異。';
   } else {
     warn.style.display = 'none';
+  }
+  if (sim) {
+    warn.style.display = 'block';
+    warn.textContent = '此為尋求突破模擬（自 2026 年起每年帶進），非趨勢推估；「不行動」為同樣只老化、不帶進人的對照。';
   }
 
   const maxVal = Math.max.apply(null, entry.bands.flat());
