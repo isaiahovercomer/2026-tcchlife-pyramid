@@ -99,7 +99,7 @@
   .prow2 .bar.male.fc { background:#a8c0d8; }
   .prow2 .bar.female.fc { background:#e0b3a8; }
   .prow2 .agelabel { font-size:3.2cqh; line-height:1; color:var(--muted); text-align:center; }
-  .prow2.group .agelabel { background:#f5e3c0; color:var(--ink); font-weight:700; border-radius:0.6cqw; }
+  .prow2.group .agelabel { display:flex; align-items:center; justify-content:center; height:3.2cqh; background:#f5e3c0; color:var(--ink); font-weight:700; border-radius:0.6cqw; }
   .proj-summary { margin-top:1.5cqw; border-radius:1.2cqw; padding:1.4cqw 2cqw; font-size:2.2cqw; line-height:1.6; }
   .proj-summary .dot { display:inline-block; width:1.6cqw; height:1.6cqw; border-radius:50%; margin-right:0.8cqw; vertical-align:-0.1cqw; }
   .pv-green { background:#e6f4ea; border:1px solid #a3d9b1; }
@@ -197,7 +197,7 @@
     <button data-group="college">大專 19–22歲</button>
     <button data-group="youngpro">青職 23–35歲</button>
   </div>
-  <div class="shot-row"><button id="btnCast" class="cast-btn">一鍵投屏</button><button id="btnShot" class="shot-btn">一鍵截圖</button></div>
+  <div class="shot-row"><button id="btnCast" class="cast-btn">一鍵投影</button><button id="btnShot" class="shot-btn">一鍵截圖</button></div>
   <div class="sim-box">
     <div class="sim-head">
       <span class="slabel">尋求突破：</span>
@@ -1044,7 +1044,7 @@ fetch('pyramid-data.json').then(r => {
 });
 </script>
 <div id="projOverlay">
-  <button id="btnProjClose" class="proj-close">✕ 退出投屏</button>
+  <button id="btnProjClose" class="proj-close">✕ 退出投影</button>
   <div class="proj-box" id="projBox">
     <div class="proj-title">2026年台中市召會聚會人數年度統計</div>
     <div class="proj-sub" id="projSub"></div>
