@@ -74,9 +74,44 @@
     .sim-grid { grid-template-columns:repeat(2, 1fr); }
     .sim-btn { font-size:12px; padding:6px 8px; }
   }
-  .shot-row { display:flex; justify-content:flex-end; margin:2px 0 10px; flex-shrink:0; }
+  .shot-row { display:flex; justify-content:flex-end; gap:8px; margin:2px 0 10px; flex-shrink:0; }
   .shot-btn { font-size:15px; font-weight:700; padding:9px 20px; border:none; background:var(--accent); color:#fff; border-radius:12px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.15); line-height:1.4; }
   .shot-btn:active { transform:translateY(1px); }
+  .cast-btn { font-size:15px; font-weight:700; padding:9px 20px; border:none; background:var(--male); color:#fff; border-radius:12px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.15); line-height:1.4; }
+  .cast-btn:active { transform:translateY(1px); }
+  #projOverlay { position:fixed; inset:0; background:#000; z-index:9999; display:none; align-items:center; justify-content:center; }
+  .proj-close { position:fixed; top:16px; right:16px; z-index:10000; font-size:15px; font-weight:700; padding:9px 18px; border:1px solid #fff; background:rgba(0,0,0,0.55); color:#fff; border-radius:999px; cursor:pointer; }
+  .proj-box { container-type:size; aspect-ratio:4 / 3; width:min(100vw, calc(100vh * 4 / 3)); height:min(100vh, calc(100vw * 3 / 4)); background:var(--paper); display:flex; flex-direction:column; padding:3.5cqw 4cqw; box-sizing:border-box; overflow:hidden; }
+  .proj-title { font-size:4.2cqw; font-weight:800; color:var(--ink); line-height:1.3; text-align:center; }
+  .proj-sub { font-size:2.1cqw; color:var(--muted); text-align:center; margin-top:1cqw; }
+  .proj-sub b { color:var(--ink); }
+  .proj-age { font-size:2.1cqw; font-weight:700; text-align:center; margin-top:0.8cqw; }
+  .proj-pyramid { flex:1; min-height:0; display:flex; flex-direction:column; margin-top:1.5cqw; background:var(--card); border:1px solid var(--line); border-radius:1.5cqw; padding:1cqw 1.5cqw; }
+  .prow2 { display:grid; grid-template-columns:1fr 11cqw 1fr; flex:1; min-height:0; align-items:center; }
+  .prow2.dim { opacity:.35; }
+  .pcell { display:flex; align-items:center; gap:1cqw; min-width:0; }
+  .pcell.left { justify-content:flex-end; }
+  .pcell.right { justify-content:flex-start; }
+  .prow2 .n { font-size:2cqw; font-variant-numeric:tabular-nums; color:var(--ink); flex-shrink:0; }
+  .prow2 .bar { height:100%; border-radius:0.4cqw; }
+  .prow2 .bar.male { background:var(--male); }
+  .prow2 .bar.female { background:var(--female); }
+  .prow2 .bar.male.fc { background:#a8c0d8; }
+  .prow2 .bar.female.fc { background:#e0b3a8; }
+  .prow2 .agelabel { font-size:1.8cqw; color:var(--muted); text-align:center; }
+  .prow2.group .agelabel { background:#f5e3c0; color:var(--ink); font-weight:700; border-radius:0.6cqw; }
+  .proj-summary { margin-top:1.5cqw; border-radius:1.2cqw; padding:1.4cqw 2cqw; font-size:2.2cqw; line-height:1.6; }
+  .proj-summary .dot { display:inline-block; width:1.6cqw; height:1.6cqw; border-radius:50%; margin-right:0.8cqw; vertical-align:-0.1cqw; }
+  .pv-green { background:#e6f4ea; border:1px solid #a3d9b1; }
+  .pv-green .dot { background:#2e7d32; }
+  .pv-yellow { background:#fef6d8; border:1px solid #ecd27a; }
+  .pv-yellow .dot { background:#d9a441; }
+  .pv-red { background:#fdecea; border:1px solid #f0b8b2; }
+  .pv-red .dot { background:#c0392b; }
+  .proj-stats { display:flex; justify-content:space-between; margin-top:1.2cqw; }
+  .proj-stats .st { text-align:center; flex:1; }
+  .proj-stats .sl { font-size:1.6cqw; color:var(--muted); }
+  .proj-stats .sv { font-size:2.4cqw; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; }
   .detail { background:#fff8e7; border:1px solid var(--line); border-radius:10px; padding:9px 12px; font-size:15px; line-height:1.7; margin-bottom:8px; min-height:40px; flex-shrink:0; }
   .warn { background:#fff3e0; border:1px solid #f0d9a8; border-radius:10px; padding:8px 12px; font-size:13px; line-height:1.7; margin-bottom:8px; flex-shrink:0; }
   .err { background:#fdecea; border:1px solid #f0b8b2; border-radius:10px; padding:10px 12px; font-size:14px; margin-bottom:8px; flex-shrink:0; }
@@ -162,7 +197,7 @@
     <button data-group="college">大專 19–22歲</button>
     <button data-group="youngpro">青職 23–35歲</button>
   </div>
-  <div class="shot-row"><button id="btnShot" class="shot-btn">一鍵截圖</button></div>
+  <div class="shot-row"><button id="btnCast" class="cast-btn">一鍵投屏</button><button id="btnShot" class="shot-btn">一鍵截圖</button></div>
   <div class="sim-box">
     <div class="sim-head">
       <span class="slabel">尋求突破：</span>
@@ -335,6 +370,8 @@ function buildControls() {
   bE.onclick = () => { scaleMode = 'enhanced'; bE.classList.add('active'); bL.classList.remove('active'); render(); };
   bO.onclick = () => { outlineOn = !outlineOn; bO.classList.toggle('active', outlineOn); render(); };
   document.getElementById('btnShot').onclick = downloadShot;
+  document.getElementById('btnCast').onclick = openProjection;
+  document.getElementById('btnProjClose').onclick = closeProjection;
   document.querySelectorAll('.group-row button').forEach(btn => {
     btn.onclick = () => {
       const key = btn.getAttribute('data-group');
@@ -764,6 +801,79 @@ function downloadShot() {
   }, 'image/png');
 }
 
+function renderProjection() {
+  const sim = simActive() ? simulate() : null;
+  let entry = sim ? sim.simEntry : getEntry(curYear, curScope);
+  if (!entry) return;
+  const scopeName = curScope === '總數' ? '台中市召會總數' : (isCare(curScope) ? curScope + '照顧區' : (isRegion(curScope) ? curScope : curScope + '大區'));
+  const yearNote = isFC(curYear) ? '預估' : (curYear === '2026' ? '累計至今' : '實際');
+  document.getElementById('projSub').innerHTML = '目前顯示：<b>' + curYear + '年（' + yearNote + '）</b>｜範圍：<b>' + scopeName + '</b>' + (sim ? '｜尋求突破模擬' : '');
+  const ageEl = document.getElementById('projAge');
+  if (birthYear) {
+    const age = parseInt(curYear, 10) - birthYear;
+    const st = ageBand(age);
+    ageEl.style.display = 'block';
+    ageEl.style.color = st.color;
+    ageEl.textContent = age < 0 ? curYear + '年，你尚未出生' : curYear + '年，你 ' + age + ' 歲（' + st.stage + '）';
+  } else {
+    ageEl.style.display = 'none';
+  }
+  const maxVal = Math.max.apply(null, entry.bands.flat());
+  const wOf = v => maxVal ? (scaleMode === 'enhanced' ? Math.pow(v / maxVal, 1.5) * 100 : v / maxVal * 100) : 0;
+  const fc = isFC(curYear);
+  const rowsEl = document.getElementById('projRows');
+  rowsEl.innerHTML = '';
+  const gb = groupSel ? GROUPS.find(g => g.key === groupSel).bands : null;
+  for (let ri = 0; ri < 19; ri++) {
+    const i = 18 - ri;
+    const m = entry.bands[i][0], f = entry.bands[i][1];
+    const row = document.createElement('div');
+    row.className = 'prow2' + (gb && gb.indexOf(i) < 0 ? ' dim' : '') + (gb && gb.indexOf(i) >= 0 ? ' group' : '');
+    row.innerHTML =
+      '<div class="pcell left"><span class="n">' + fmt(m) + '</span><div class="bar male' + (fc ? ' fc' : '') + '" style="width:' + wOf(m) + '%"></div></div>' +
+      '<span class="agelabel">' + DATA.band_labels[i] + '歲</span>' +
+      '<div class="pcell right"><div class="bar female' + (fc ? ' fc' : '') + '" style="width:' + wOf(f) + '%"></div><span class="n">' + fmt(f) + '</span></div>';
+    rowsEl.appendChild(row);
+  }
+  const a = sim ? simSummary(sim) : (groupSel ? groupSummary(entry) : assess(entry));
+  const sumEl = document.getElementById('projSummary');
+  sumEl.className = 'proj-summary pv-' + a.verdict;
+  sumEl.innerHTML = '<span class="dot"></span><b>' + a.word + '</b> ' + a.html;
+  const stats = [
+    ['總人數', fmt(entry.total)],
+    ['弟兄', fmt(entry.male)],
+    ['姊妹', fmt(entry.female)],
+    ['平均年齡', num1(entry.avg_age) + '歲'],
+    ['中位數', num1(entry.median) + '歲'],
+    ['青年占比', num1(entry.youth_pct) + '%']
+  ];
+  document.getElementById('projStats').innerHTML = stats.map(s => '<div class="st"><div class="sl">' + s[0] + '</div><div class="sv">' + s[1] + '</div></div>').join('');
+}
+
+function openProjection() {
+  renderProjection();
+  document.getElementById('projOverlay').style.display = 'flex';
+  try {
+    const p = document.documentElement.requestFullscreen();
+    if (p && p.catch) p.catch(() => {});
+  } catch (e) {}
+}
+
+function closeProjection() {
+  document.getElementById('projOverlay').style.display = 'none';
+  try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {}
+}
+
+document.addEventListener('fullscreenchange', () => {
+  const ov = document.getElementById('projOverlay');
+  if (ov && !document.fullscreenElement && ov.style.display === 'flex') closeProjection();
+});
+
+document.addEventListener('keydown', e => {
+  const ov = document.getElementById('projOverlay');
+  if (ov && e.key === 'Escape' && ov.style.display === 'flex') closeProjection();
+});
+
 function render() {
   let entry = getEntry(curYear, curScope);
   const errEl = document.getElementById('err');
@@ -933,5 +1043,16 @@ fetch('pyramid-data.json').then(r => {
   document.getElementById('detail').textContent = '數據載入失敗';
 });
 </script>
+<div id="projOverlay">
+  <button id="btnProjClose" class="proj-close">✕ 退出投屏</button>
+  <div class="proj-box" id="projBox">
+    <div class="proj-title">2026年台中市召會聚會人數年度統計</div>
+    <div class="proj-sub" id="projSub"></div>
+    <div class="proj-age" id="projAge"></div>
+    <div class="proj-pyramid" id="projRows"></div>
+    <div class="proj-summary" id="projSummary"></div>
+    <div class="proj-stats" id="projStats"></div>
+  </div>
+</div>
 </body>
 </html>
