@@ -86,21 +86,9 @@
   .proj-sub { font-size:2.1cqw; color:var(--muted); text-align:center; margin-top:1cqw; }
   .proj-sub b { color:var(--ink); }
   .proj-age { font-size:2.1cqw; font-weight:700; text-align:center; margin-top:0.8cqw; }
-  .proj-pyramid { container-type:size; flex:1; min-height:0; display:flex; flex-direction:column; margin-top:1.5cqw; background:var(--card); border:1px solid var(--line); border-radius:1.5cqw; padding:1cqw 1.5cqw; }
-  .prow2 { display:grid; grid-template-columns:1fr 11cqw 1fr; flex:1; min-height:0; align-items:center; }
-  .prow2.dim { opacity:.35; }
-  .pcell { display:flex; align-items:center; gap:1cqw; min-width:0; }
-  .pcell.left { justify-content:flex-end; }
-  .pcell.right { justify-content:flex-start; }
-  .prow2 .n { font-size:3.6cqh; line-height:1; font-variant-numeric:tabular-nums; color:var(--ink); flex-shrink:0; }
-  .prow2 .bar { height:100%; border-radius:0.4cqw; }
-  .prow2 .bar.male { background:var(--male); }
-  .prow2 .bar.female { background:var(--female); }
-  .prow2 .bar.male.fc { background:#a8c0d8; }
-  .prow2 .bar.female.fc { background:#e0b3a8; }
-  .prow2 .agelabel { font-size:3.2cqh; line-height:1; color:var(--muted); text-align:center; }
-  .prow2.group .agelabel { display:flex; align-items:center; justify-content:center; justify-self:center; width:80%; height:3.2cqh; background:#f5e3c0; color:var(--ink); font-weight:700; border-radius:1.6cqh; }
-  .proj-summary { margin-top:1.5cqw; border-radius:1.2cqw; padding:1.4cqw 2cqw; font-size:2.2cqw; line-height:1.6; }
+  .proj-pyramid { flex:1; min-height:0; display:flex; flex-direction:column; margin-top:1.5cqw; background:var(--card); border:1px solid var(--line); border-radius:1.5cqw; padding:1cqw 1.5cqw; }
+  #projCanvas { display:block; flex:1; min-height:0; min-width:0; width:100%; }
+  .proj-summary { margin-top:1.5cqw; border-radius:1.2cqw; padding:1.4cqw 2cqw; font-size:2.2cqw; line-height:1.6; text-align:center; }
   .proj-summary .dot { display:inline-block; width:1.6cqw; height:1.6cqw; border-radius:50%; margin-right:0.8cqw; vertical-align:-0.1cqw; }
   .pv-green { background:#e6f4ea; border:1px solid #a3d9b1; }
   .pv-green .dot { background:#2e7d32; }
@@ -818,22 +806,58 @@ function renderProjection() {
   } else {
     ageEl.style.display = 'none';
   }
-  const maxVal = Math.max.apply(null, entry.bands.flat());
-  const wOf = v => maxVal ? (scaleMode === 'enhanced' ? Math.pow(v / maxVal, 1.5) * 100 : v / maxVal * 100) : 0;
-  const fc = isFC(curYear);
-  const rowsEl = document.getElementById('projRows');
-  rowsEl.innerHTML = '';
-  const gb = groupSel ? GROUPS.find(g => g.key === groupSel).bands : null;
-  for (let ri = 0; ri < 19; ri++) {
-    const i = 18 - ri;
-    const m = entry.bands[i][0], f = entry.bands[i][1];
-    const row = document.createElement('div');
-    row.className = 'prow2' + (gb && gb.indexOf(i) < 0 ? ' dim' : '') + (gb && gb.indexOf(i) >= 0 ? ' group' : '');
-    row.innerHTML =
-      '<div class="pcell left"><span class="n">' + fmt(m) + '</span><div class="bar male' + (fc ? ' fc' : '') + '" style="width:' + wOf(m) + '%"></div></div>' +
-      '<span class="agelabel">' + DATA.band_labels[i] + '歲</span>' +
-      '<div class="pcell right"><div class="bar female' + (fc ? ' fc' : '') + '" style="width:' + wOf(f) + '%"></div><span class="n">' + fmt(f) + '</span></div>';
-    rowsEl.appendChild(row);
+  const cvs = document.getElementById('projCanvas');
+  const cw = cvs.clientWidth, ch = cvs.clientHeight;
+  if (cw > 0 && ch > 0) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cvs.width = Math.round(cw * dpr); cvs.height = Math.round(ch * dpr);
+    const ctx = cvs.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const font = '"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif';
+    const cx = cw / 2, maxBar = cw * 0.33;
+    const headerH = ch * 0.045, rowH = (ch - headerH) / 19;
+    const maxVal = Math.max.apply(null, entry.bands.flat());
+    const wOf = v => maxVal ? (scaleMode === 'enhanced' ? Math.pow(v / maxVal, 1.5) * 100 : v / maxVal * 100) : 0;
+    const maleCol = isFC(curYear) ? '#a8c0d8' : '#3d648f';
+    const femaleCol = isFC(curYear) ? '#e0b3a8' : '#a85a4e';
+    const numFont = Math.max(9, cw * 0.0145) + 'px ' + font;
+    const gap = cw * 0.008;
+    const leftPts = [], rightPts = [];
+    const gb = groupSel ? GROUPS.find(g => g.key === groupSel).bands : null;
+    ctx.textBaseline = 'middle';
+    ctx.font = numFont; ctx.fillStyle = '#8a7f70';
+    ctx.textAlign = 'right'; ctx.fillText('← 弟兄人數', cx - gap, headerH / 2);
+    ctx.textAlign = 'left'; ctx.fillText('姊妹人數 →', cx + gap, headerH / 2);
+    let y = headerH;
+    for (let ri = 0; ri < 19; ri++) {
+      const i = 18 - ri;
+      const m = entry.bands[i][0], f = entry.bands[i][1];
+      ctx.globalAlpha = (gb && gb.indexOf(i) < 0) ? 0.35 : 1;
+      const mw = wOf(m) / 100 * maxBar, fw = wOf(f) / 100 * maxBar;
+      ctx.fillStyle = maleCol; ctx.fillRect(cx - mw, y, mw, rowH);
+      ctx.fillStyle = femaleCol; ctx.fillRect(cx, y, fw, rowH);
+      ctx.font = numFont; ctx.fillStyle = '#3b332a';
+      ctx.textAlign = 'right'; ctx.fillText(fmt(m), cx - mw - gap, y + rowH / 2);
+      ctx.textAlign = 'left'; ctx.fillText(fmt(f), cx + fw + gap, y + rowH / 2);
+      leftPts.push([cx - mw, y + rowH / 2]); rightPts.push([cx + fw, y + rowH / 2]);
+      y += rowH;
+    }
+    ctx.globalAlpha = 1;
+    if (outlineOn) {
+      ctx.strokeStyle = '#5a4a33'; ctx.lineWidth = Math.max(1.5, cw * 0.0022); ctx.beginPath();
+      ctx.moveTo(leftPts[0][0], leftPts[0][1]);
+      leftPts.forEach(p => ctx.lineTo(p[0], p[1]));
+      rightPts.slice().reverse().forEach(p => ctx.lineTo(p[0], p[1]));
+      ctx.closePath(); ctx.stroke();
+    }
+    if (gb) {
+      const ris = gb.map(b => 18 - b);
+      const xs = ris.map(ri => leftPts[ri][0]);
+      const xe = ris.map(ri => rightPts[ri][0]);
+      const top = Math.min.apply(null, ris), bot = Math.max.apply(null, ris);
+      ctx.strokeStyle = '#d9a400'; ctx.lineWidth = Math.max(2, cw * 0.0033);
+      ctx.strokeRect(Math.min.apply(null, xs), leftPts[top][1] - rowH / 2, Math.max.apply(null, xe) - Math.min.apply(null, xs), (bot - top + 1) * rowH);
+    }
   }
   const a = sim ? simSummary(sim) : (groupSel ? groupSummary(entry) : assess(entry));
   const sumEl = document.getElementById('projSummary');
@@ -851,8 +875,8 @@ function renderProjection() {
 }
 
 function openProjection() {
-  renderProjection();
   document.getElementById('projOverlay').style.display = 'flex';
+  renderProjection();
   try {
     const p = document.documentElement.requestFullscreen();
     if (p && p.catch) p.catch(() => {});
@@ -872,6 +896,11 @@ document.addEventListener('fullscreenchange', () => {
 document.addEventListener('keydown', e => {
   const ov = document.getElementById('projOverlay');
   if (ov && e.key === 'Escape' && ov.style.display === 'flex') closeProjection();
+});
+
+window.addEventListener('resize', () => {
+  const ov = document.getElementById('projOverlay');
+  if (ov && ov.style.display === 'flex') renderProjection();
 });
 
 function render() {
@@ -1049,7 +1078,7 @@ fetch('pyramid-data.json').then(r => {
     <div class="proj-title">2026年台中市召會聚會人數年度統計</div>
     <div class="proj-sub" id="projSub"></div>
     <div class="proj-age" id="projAge"></div>
-    <div class="proj-pyramid" id="projRows"></div>
+    <div class="proj-pyramid"><canvas id="projCanvas"></canvas></div>
     <div class="proj-summary" id="projSummary"></div>
     <div class="proj-stats" id="projStats"></div>
   </div>
