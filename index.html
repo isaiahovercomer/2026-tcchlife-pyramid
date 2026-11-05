@@ -148,8 +148,8 @@
 /* 首次進站使用教學（導覽，方式同原文對照聖經站的 tour.js 簡化版） */
 .tour { position:fixed; inset:0; z-index:100; }
 .tour-catch { position:absolute; inset:0; }
-.tour-hole { position:fixed; border:2px solid #d9a400; border-radius:10px; box-shadow:0 0 0 9999px rgba(0,0,0,0.55); pointer-events:none; }
-.tour-bubble { position:fixed; background:#fff; border-radius:16px; padding:18px 20px; max-width:340px; width:calc(100vw - 32px); box-shadow:0 8px 30px rgba(0,0,0,0.35); }
+.tour-hole { position:fixed; box-sizing:border-box; border:2px solid #d9a400; border-radius:10px; box-shadow:0 0 0 9999px rgba(0,0,0,0.55); pointer-events:none; }
+.tour-bubble { position:fixed; box-sizing:border-box; background:#fff; border-radius:16px; padding:18px 20px; max-width:340px; width:calc(100vw - 32px); box-shadow:0 8px 30px rgba(0,0,0,0.35); }
 .tour-bubble h2 { font-size:17px; margin:0 0 6px; line-height:1.4; }
 .tour-bubble p { font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 14px; }
 .tour-head { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
@@ -642,25 +642,27 @@ function tourReposition() {
   a.bubble.style.top = top + 'px'; a.bubble.style.left = left + 'px';
 }
 async function tourGo(i) {
-  const a = tourActive; if (!a) return;
+  const a = tourActive; if (!a || a.busy) return;
   if (i < 0) return;
   if (i >= a.steps.length) { tourEnd(); return; }
+  a.busy = true;
   a.i = i;
   const s = a.steps[i];
   let el = null;
   try { el = s.target(); } catch (e) {}
-  if (!el || !el.getClientRects().length) { tourGo(i + 1); return; }
+  if (!el || !el.getClientRects().length) { a.busy = false; tourGo(i + 1); return; }
   el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   await new Promise(r => setTimeout(r, 350));
   if (tourActive !== a) return;
   try { el = s.target(); } catch (e) { el = null; }
-  if (!el || !el.getClientRects().length) { tourGo(i + 1); return; }
+  if (!el || !el.getClientRects().length) { a.busy = false; tourGo(i + 1); return; }
   a.titleEl.textContent = s.title;
   a.textEl.textContent = s.text;
   a.countEl.textContent = (i + 1) + ' / ' + a.steps.length;
   a.prevBtn.disabled = (i === 0);
   a.nextBtn.textContent = (i === a.steps.length - 1) ? '完成' : '下一步';
   tourReposition();
+  a.busy = false;
   a.nextBtn.focus({ preventScroll: true });
 }
 function tourEnd() {
