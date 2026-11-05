@@ -700,10 +700,10 @@ let simOn = { child: false, youth: false, dazhuan: false, youngpro: false, allYo
 const simActive = () => SIM_DEFS.some(d => simOn[d.key]);
 
 function simCount() {
-  if (curScope === '總數') return 500;
-  if (isRegion(curScope)) return 50 * REGIONS[curScope].length;
-  if (isCare(curScope)) return 50;
-  return 10;
+  if (curScope === '總數') return 100;
+  if (isRegion(curScope)) return 10 * REGIONS[curScope].length;
+  if (isCare(curScope)) return 10;
+  return 2;
 }
 
 function simWeights(def) {
@@ -794,7 +794,7 @@ function updateSimUI() {
   document.getElementById('simClear').style.display = any ? 'inline' : 'none';
   document.getElementById('simNote').style.display = any ? 'block' : 'none';
   if (any) {
-    document.getElementById('simNote').textContent = '模擬說明：以 2026 年為起點、以上方所選年份為目標（2027 年為 1 年後、2030 年為 4 年後、2035 年為 9 年後、2040 年為 14 年後）；選實際年份時顯示該年實際數據；每年先老化一年（各段 1/5 移入下一段，90+ 累積），再帶進當年的人；帶進的人男女各半、年齡在該段內均勻分布（90+ 段按 5 歲計）；大專指 19–22 歲，青職指 23–35 歲，青年人指 0–35 歲，其他年齡指 36 歲以上；量級為大區每組 10 人、照顧區每組 50 人、方位合計每組 50×照顧區數、全召會每組 500 人（目前每組每年 ' + fmt(n) + ' 人）；不含死亡、流失與自然出生，重點是比較有帶進與無帶進的差異。';
+    document.getElementById('simNote').textContent = '模擬說明：以 2026 年為起點、以上方所選年份為目標（2027 年為 1 年後、2030 年為 4 年後、2035 年為 9 年後、2040 年為 14 年後）；選實際年份時顯示該年實際數據；每年先老化一年（各段 1/5 移入下一段，90+ 累積），再帶進當年的人；帶進的人男女各半、年齡在該段內均勻分布（90+ 段按 5 歲計）；大專指 19–22 歲，青職指 23–35 歲，青年人指 0–35 歲，其他年齡指 36 歲以上；量級為大區每組 2 人、照顧區每組 10 人、方位合計每組 10×照顧區數、全召會每組 100 人（目前每組每年 ' + fmt(n) + ' 人）；不含死亡、流失與自然出生，重點是比較有帶進與無帶進的差異。';
   }
 }
 
