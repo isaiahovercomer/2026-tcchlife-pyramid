@@ -145,6 +145,20 @@
     #rows { display:block; }
     .prow { padding:2px 0; }
   }
+/* 首次進站使用教學（導覽，方式同原文對照聖經站的 tour.js 簡化版） */
+.tour { position:fixed; inset:0; z-index:100; }
+.tour-catch { position:absolute; inset:0; }
+.tour-hole { position:fixed; border:2px solid #d9a400; border-radius:10px; box-shadow:0 0 0 9999px rgba(0,0,0,0.55); pointer-events:none; }
+.tour-bubble { position:fixed; background:#fff; border-radius:16px; padding:18px 20px; max-width:340px; width:calc(100vw - 32px); box-shadow:0 8px 30px rgba(0,0,0,0.35); }
+.tour-bubble h2 { font-size:17px; margin:0 0 6px; line-height:1.4; }
+.tour-bubble p { font-size:14px; color:var(--muted); line-height:1.8; margin:0 0 14px; }
+.tour-head { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+.tour-count { font-size:12px; color:var(--muted); white-space:nowrap; }
+.tour-btns { display:flex; justify-content:flex-end; gap:8px; }
+.tour-btns button { font-size:14px; padding:8px 16px; border-radius:999px; cursor:pointer; border:1px solid var(--line); background:#fff; color:var(--ink); }
+.tour-btns button.next { background:var(--accent); color:#fff; border-color:var(--accent); }
+.tour-btns button:disabled { opacity:0.4; cursor:default; }
+.tour-replay { font-size:12px; padding:4px 9px; border:1px solid var(--line); background:#fff; border-radius:999px; cursor:pointer; color:var(--ink); line-height:1.4; }
 </style>
 </head>
 <body>
@@ -176,6 +190,7 @@
       <button id="btnEnhanced" class="active">對比增強</button>
       <button id="btnOutline" class="active">輪廓</button>
     </span>
+    <span><button id="btnTour" class="tour-replay">使用教學</button></span>
     <span class="shape-label" id="shapeLabel"></span>
   </div>
   <div class="group-row">
@@ -534,6 +549,128 @@ function showBirthModal() {
 }
 function hideBirthModal() {
   document.getElementById('birthModal').style.display = 'none';
+  maybeStartTour();
+}
+
+/* 首次進站使用教學：遮罩＋亮圈＋說明卡（方式同原文對照聖經站的 tour.js 簡化版）。
+   首次進站（localStorage 'tcch-tour' 未記）在出生年視窗關閉後自動開始，只出現一次；
+   之後隨時點圖例列的「使用教學」重看。目標找不到的步驟直接跳過。 */
+const TOUR_KEY = 'tcch-tour';
+const TOUR_VERSION = 1;
+const TOUR_STEPS = [
+  { target: () => document.getElementById('scope'), title: '選範圍', text: '先選要看的範圍：全召會總數、方位合計、十個照顧區合計，或任一個大區。' },
+  { target: () => document.getElementById('years'), title: '選年份', text: '2023–2026 年是實際統計，2027、2030、2035、2040 年是趨勢延續的預估情境。選的年份與範圍顯示在下方的「目前顯示」。' },
+  { target: () => document.getElementById('ageLine'), title: '你的年齡', text: '輸入出生年後，這裡顯示你在所選年份是幾歲，顏色代表人生階段；點「更改出生年」可以改。' },
+  { target: () => document.getElementById('rows'), title: '點長條看明細', text: '金字塔是倒置的：0–4 歲在最下面，90 歲以上在最上面。點任一長條，下方會顯示那個年齡段的人數。' },
+  { target: () => document.querySelector('.scale-toggle'), title: '輪廓與比例', text: '「真實比例」照實際人數畫；「對比增強」讓小數字也看得見。開「輪廓」描出金字塔外緣與大致形狀。' },
+  { target: () => document.querySelector('.group-row'), title: '特別年齡段', text: '點兒童、青少年、大專或青職，其他段會變淡，並用金框標出那個年齡層的範圍；再點一次取消。' },
+  { target: () => document.querySelector('.sim-box'), title: '尋求突破', text: '選一個或多個年齡層，模擬自 2026 年起每年帶進人數，和「不行動、只老化」的對照比較。換年份或範圍不會清除，按「清除」才回復。' },
+  { target: () => document.querySelector('.shot-row'), title: '一鍵截圖／投影', text: '「一鍵截圖」把目前畫面存成圖片；「一鍵投影」開成橫式 4:3 全螢幕，適合接投影幕播放。' },
+  { target: () => document.getElementById('summary'), title: '總結卡片', text: '燈號與形狀在這裡：綠燈結構穩健、黃燈需要留意、紅燈值得警示。選年齡段或做模擬時，總結會跟著換。' },
+  { target: () => document.getElementById('btnTour'), title: '隨時重看', text: '想再看一次教學，隨時點這裡「使用教學」。祝你使用愉快！' },
+];
+let tourActive = null;
+function tourSeen() { try { return (parseInt(localStorage.getItem(TOUR_KEY), 10) || 0) >= TOUR_VERSION; } catch (e) { return true; } }
+function markTourSeen() { try { localStorage.setItem(TOUR_KEY, String(TOUR_VERSION)); } catch (e) {} }
+function maybeStartTour() { if (!tourActive && !tourSeen() && DATA) startTour(); }
+function replayTour() { if (!tourActive) startTour(); }
+function tourEl(tag, cls, text) { const el = document.createElement(tag); if (cls) el.className = cls; if (text != null) el.textContent = text; return el; }
+function startTour() {
+  markTourSeen();
+  const steps = TOUR_STEPS.filter(s => { try { const el = s.target(); return el && el.getClientRects().length > 0; } catch (e) { return false; } });
+  if (!steps.length) return;
+  const el = tourEl('div', 'tour');
+  const catcher = tourEl('div', 'tour-catch');
+  const hole = tourEl('div', 'tour-hole');
+  const bubble = tourEl('div', 'tour-bubble');
+  bubble.setAttribute('role', 'dialog');
+  bubble.setAttribute('aria-modal', 'true');
+  const head = tourEl('div', 'tour-head');
+  const titleEl = tourEl('h2', null, '');
+  const countEl = tourEl('span', 'tour-count', '');
+  head.appendChild(titleEl); head.appendChild(countEl);
+  const textEl = tourEl('p', null, '');
+  const btns = tourEl('div', 'tour-btns');
+  const skipBtn = tourEl('button', null, '跳過'); skipBtn.type = 'button';
+  const prevBtn = tourEl('button', null, '上一步'); prevBtn.type = 'button';
+  const nextBtn = tourEl('button', 'next', '下一步'); nextBtn.type = 'button';
+  skipBtn.onclick = () => tourEnd();
+  prevBtn.onclick = () => tourGo(tourActive.i - 1);
+  nextBtn.onclick = () => tourGo(tourActive.i + 1);
+  btns.appendChild(skipBtn); btns.appendChild(prevBtn); btns.appendChild(nextBtn);
+  bubble.appendChild(head); bubble.appendChild(textEl); bubble.appendChild(btns);
+  el.appendChild(catcher); el.appendChild(hole); el.appendChild(bubble);
+  tourActive = { steps, i: 0, el, hole, bubble, titleEl, countEl, textEl, prevBtn, nextBtn, focus: document.activeElement };
+  for (const t of ['pointerdown', 'click', 'touchstart']) catcher.addEventListener(t, e => { e.preventDefault(); e.stopPropagation(); }, { passive: false });
+  document.addEventListener('keydown', tourOnKey, true);
+  window.addEventListener('resize', tourReposition);
+  window.addEventListener('scroll', tourReposition, true);
+  document.body.appendChild(el);
+  tourGo(0);
+}
+function tourOnKey(e) {
+  if (!tourActive) return;
+  if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); tourEnd(); return; }
+  if (e.key === 'Tab') {
+    const a = tourActive;
+    const items = [...a.bubble.querySelectorAll('button')].filter(b => !b.disabled);
+    if (!items.length) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    const at = items.indexOf(document.activeElement);
+    const n = at < 0 ? (e.shiftKey ? items.length - 1 : 0) : (at + (e.shiftKey ? -1 : 1) + items.length) % items.length;
+    items[n].focus({ preventScroll: true });
+  }
+}
+function tourReposition() {
+  const a = tourActive; if (!a) return;
+  const s = a.steps[a.i]; if (!s) return;
+  const el = s.target();
+  if (!el || !el.getClientRects().length) return;
+  const r = el.getBoundingClientRect();
+  const PAD = 6, GAP = 12, EDGE = 12;
+  const hole = { left: r.left - PAD, top: r.top - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2 };
+  a.hole.style.left = hole.left + 'px'; a.hole.style.top = hole.top + 'px';
+  a.hole.style.width = hole.width + 'px'; a.hole.style.height = hole.height + 'px';
+  const bw = Math.min(340, window.innerWidth - EDGE * 2);
+  a.bubble.style.width = bw + 'px';
+  const bh = a.bubble.offsetHeight;
+  let top = hole.top + hole.height + GAP;
+  if (top + bh > window.innerHeight - EDGE) top = hole.top - GAP - bh;
+  if (top < EDGE) top = EDGE;
+  let left = hole.left + hole.width / 2 - bw / 2;
+  left = Math.max(EDGE, Math.min(left, window.innerWidth - bw - EDGE));
+  a.bubble.style.top = top + 'px'; a.bubble.style.left = left + 'px';
+}
+async function tourGo(i) {
+  const a = tourActive; if (!a) return;
+  if (i < 0) return;
+  if (i >= a.steps.length) { tourEnd(); return; }
+  a.i = i;
+  const s = a.steps[i];
+  let el = null;
+  try { el = s.target(); } catch (e) {}
+  if (!el || !el.getClientRects().length) { tourGo(i + 1); return; }
+  el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  await new Promise(r => setTimeout(r, 350));
+  if (tourActive !== a) return;
+  try { el = s.target(); } catch (e) { el = null; }
+  if (!el || !el.getClientRects().length) { tourGo(i + 1); return; }
+  a.titleEl.textContent = s.title;
+  a.textEl.textContent = s.text;
+  a.countEl.textContent = (i + 1) + ' / ' + a.steps.length;
+  a.prevBtn.disabled = (i === 0);
+  a.nextBtn.textContent = (i === a.steps.length - 1) ? '完成' : '下一步';
+  tourReposition();
+  a.nextBtn.focus({ preventScroll: true });
+}
+function tourEnd() {
+  const a = tourActive; if (!a) return;
+  tourActive = null;
+  document.removeEventListener('keydown', tourOnKey, true);
+  window.removeEventListener('resize', tourReposition);
+  window.removeEventListener('scroll', tourReposition, true);
+  a.el.remove();
+  if (a.focus && a.focus.focus) { try { a.focus.focus({ preventScroll: true }); } catch (e) {} }
 }
 
 function groupTotal(entry, bands) {
@@ -1052,6 +1189,7 @@ document.getElementById('birthOk').onclick = () => {
   renderAge();
 };
 document.getElementById('birthSkip').onclick = () => { hideBirthModal(); renderAge(); };
+document.getElementById('btnTour').onclick = replayTour;
 
 fetch('pyramid-data.json').then(r => {
   if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -1064,7 +1202,7 @@ fetch('pyramid-data.json').then(r => {
   } catch (e) {}
   buildControls();
   render();
-  if (!birthYear) showBirthModal();
+  if (!birthYear) showBirthModal(); else maybeStartTour();
 }).catch(e => {
   const el = document.getElementById('err');
   el.style.display = 'block';
